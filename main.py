@@ -1,4 +1,4 @@
-from CBT import CBTCounselingSystem, ClientProfile
+from . import CBTCounselingSystem, ClientProfile
 
 
 def main():
@@ -41,4 +41,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
