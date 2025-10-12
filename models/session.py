@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from dataclasses import dataclass, field
 
 
@@ -19,6 +19,9 @@ class CounselingSession:
     cbt_plan: Optional[str] = None
     messages: List[Message] = field(default_factory=list)
     selected_techniques: List[str] = field(default_factory=list)
+    agenda_items: List[str] = field(default_factory=list)
+    session_focus: Optional[str] = None
+    initial_session_data: Optional[Dict[str, str]] = None
     
     def add_message(self, speaker: str, content: str) -> None:
         """Add a message to the session history."""

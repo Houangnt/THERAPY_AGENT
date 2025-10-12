@@ -6,6 +6,7 @@ from ..config import Config
 from ..utils.prompts import PromptTemplates
 from ..utils.validators import validate_client_profile, validate_message
 from .cbt_planner import CBTPlannerAgent
+from .initial_agent import InitialAgent
 from .technique_selector import TechniqueSelectorAgent
 from .specialized import (
     reflection_agent,
@@ -21,7 +22,7 @@ class CBTCounselingSystem:
     Main orchestrator for the CBT multi-agent counseling system.
     """
     
-    def __init__(self, client_profile: ClientProfile):
+    def __init__(self, client_profile: ClientProfile, initial_client_message: str):
         """
         Initialize the CBT counseling system.
         
@@ -38,6 +39,7 @@ class CBTCounselingSystem:
         self.config = Config()
         
         # Initialize sub-agents
+        self.initial_agent = InitialAgent()
         self.cbt_planner = CBTPlannerAgent()
         self.technique_selector = TechniqueSelectorAgent()
         
@@ -55,24 +57,38 @@ class CBTCounselingSystem:
                 psychoeducation_agent
             ]
         )
-    
-    def initialize_session(self, initial_client_message: str) -> str:
-        """
-        Initialize counseling session with CBT plan.
         
-        Args:
-            initial_client_message: Client's first message
-            
-        Returns:
-            Initial counselor response
-        """
+        # Validate and process initial message
         is_valid, error = validate_message(initial_client_message)
         if not is_valid:
             raise ValueError(f"Invalid message: {error}")
         
-        # Create CBT plan
+        # Conduct initial session task (agenda setting)
+        self.session.initial_session_data = self.initial_agent.conduct_initial_session(
+            self.client_profile,
+            initial_client_message
+        )
+        
+        # Store agenda information in session
+        self.session.agenda_items = self.session.initial_session_data.get('agenda_items', [])
+        self.session.session_focus = self.session.initial_session_data.get('session_focus', '')
+        
+        # Create CBT plan with agenda context
+        agenda_summary = self.session.initial_session_data.get('agenda_summary', '')
+        combined_context = self.session.initial_session_data.get('combined_context', '')
+        
+        enhanced_client_info = f"""
+        {self.client_profile.to_string()}
+        
+        Agenda Information:
+        {agenda_summary}
+        
+        Combined Context:
+        {combined_context}
+        """
+        
         self.session.cbt_plan = self.cbt_planner.create_plan(
-            self.client_profile.to_string(),
+            enhanced_client_info,
             self.client_profile.reason_for_counseling,
             initial_client_message
         )
@@ -81,7 +97,7 @@ class CBTCounselingSystem:
         self.session.add_message("Client", initial_client_message)
         
         # Generate initial response
-        return self._process_turn()
+        self.initial_response = self._process_turn()
     
     def process_turn(self, client_message: str) -> str:
         """
@@ -144,5 +160,11 @@ class CBTCounselingSystem:
             'total_turns': len(self.session.messages) // 2,
             'cbt_plan': self.session.cbt_plan,
             'recent_techniques': self.session.selected_techniques,
-            'message_count': len(self.session.messages)
+            'message_count': len(self.session.messages),
+            'agenda_items': self.session.agenda_items,
+            'session_focus': self.session.session_focus,
+            'agenda_summary': self.session.initial_session_data.get('agenda_summary', ''),
+            'goals': self.session.initial_session_data.get('goals', []),
+            'priorities': self.session.initial_session_data.get('priorities', []),
+            'initial_session_data': self.session.initial_session_data
         }

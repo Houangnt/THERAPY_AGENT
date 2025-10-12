@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 
 class PromptTemplates:
@@ -107,6 +107,33 @@ class PromptTemplates:
 
         Example format: Reflection, Questioning"""
     
+    @staticmethod
+    def agenda_setting_prompt(client_info: str, goal: str, client_schedule_technical: str, 
+                             diagnosis: str, initial_message: str) -> str:
+        return f"""You are a CBT therapist setting the agenda for a counseling session. 
+        At the beginning of the session, you and the client work together to set an agenda 
+        for what you will discuss and work on during the session. This helps to ensure that 
+        the session stays focused and productive.
+
+        You have received the following information from the user database system:
+
+        Client Information:
+        - Client Info: {client_info}
+        - Client's Goal: {goal}
+        - Schedule/Technical Constraints: {client_schedule_technical}
+        - Diagnosis: {diagnosis}
+        - Initial Message: {initial_message}
+
+        Your task is to:
+        1. Acknowledge the client's initial message
+        2. Collaboratively set a focused agenda for this session
+        3. Identify what will be discussed and worked on
+        4. Ensure the session stays focused and productive
+        5. Consider the client's goals, constraints, and diagnosis
+
+        Create a clear, collaborative agenda that the client can agree to, focusing on their 
+        immediate needs and therapeutic goals."""
+
     @staticmethod
     def synthesis_prompt(candidates: Dict[str, str], techniques: List[str]) -> str:
         techniques_str = ", ".join(techniques)

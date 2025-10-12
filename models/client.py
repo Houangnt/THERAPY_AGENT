@@ -13,6 +13,8 @@ class ClientProfile:
     mood: str
     diagnosis: str
     reason_for_counseling: str
+    goal: Optional[str] = None
+    client_schedule_technical: Optional[str] = None
     additional_notes: Optional[str] = None
     
     def to_string(self) -> str:
