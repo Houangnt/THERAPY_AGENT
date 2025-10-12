@@ -15,6 +15,7 @@ from .specialized import (
     normalizing_agent,
     psychoeducation_agent
 )
+from strands.models import BedrockModel
 
 
 class CBTCounselingSystem:
@@ -43,7 +44,12 @@ class CBTCounselingSystem:
         self.cbt_planner = CBTPlannerAgent()
         self.technique_selector = TechniqueSelectorAgent()
         
-        # Create response synthesis orchestrator
+        bedrock_model = BedrockModel(
+            model_id="mistral.mistral-large-2402-v1:0",
+            region_name="ap-southeast-2",
+            streaming=False,
+        )
+        
         self.orchestrator = Agent(
             system_prompt="""You are a counselor synthesizing responses from 
             specialized therapeutic agents. Generate empathetic, natural counselor responses 
@@ -55,7 +61,8 @@ class CBTCounselingSystem:
                 solution_agent,
                 normalizing_agent,
                 psychoeducation_agent
-            ]
+            ],
+            model=bedrock_model
         )
         
         # Validate and process initial message

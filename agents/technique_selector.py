@@ -2,14 +2,19 @@ from typing import List
 from strands import Agent
 from ..config import Config
 from ..utils.prompts import PromptTemplates
+from .base import BaseAgent
 
 
-class TechniqueSelectorAgent:
+class TechniqueSelectorAgent(BaseAgent):
     """Agent responsible for selecting appropriate therapeutic techniques."""
     
     def __init__(self):
         """Initialize the technique selector agent."""
         self.config = Config()
+        super().__init__(
+            system_prompt="You are a CBT therapist selecting appropriate techniques.",
+            tools=[]
+        )
     
     def select_techniques(self, cbt_plan: str, history: str) -> List[str]:
         """
@@ -30,7 +35,8 @@ class TechniqueSelectorAgent:
             techniques_str
         )
         
-        agent = Agent(system_prompt=prompt, tools=[])
+        # Create agent with Bedrock config
+        agent = Agent(system_prompt=prompt, tools=[], model=self.model)
         response = str(agent(""))
         
         # Parse response to extract technique names
@@ -43,3 +49,16 @@ class TechniqueSelectorAgent:
         ]
         
         return valid_techniques if valid_techniques else ["Reflection"]
+    
+    def execute(self, cbt_plan: str, history: str) -> List[str]:
+        """
+        Execute the technique selection task.
+        
+        Args:
+            cbt_plan: The CBT counseling plan
+            history: Current dialogue history
+            
+        Returns:
+            List of selected technique names
+        """
+        return self.select_techniques(cbt_plan, history)

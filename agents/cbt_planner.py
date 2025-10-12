@@ -1,14 +1,19 @@
 from strands import Agent
 from ..config import Config
 from ..utils.prompts import PromptTemplates
+from .base import BaseAgent
 
 
-class CBTPlannerAgent:
+class CBTPlannerAgent(BaseAgent):
     """Agent responsible for creating CBT-based counseling plans."""
     
     def __init__(self):
         """Initialize the CBT planner agent."""
         self.config = Config()
+        super().__init__(
+            system_prompt="You are a CBT therapist creating treatment plans.",
+            tools=[]
+        )
     
     def create_plan(self, client_info: str, reason: str, 
                    initial_dialogue: str) -> str:
@@ -22,5 +27,19 @@ class CBTPlannerAgent:
             initial_dialogue
         )
         
-        agent = Agent(system_prompt=prompt, tools=[])
+        agent = Agent(system_prompt=prompt, tools=[], model=self.model)
         return str(agent(""))
+    
+    def execute(self, client_info: str, reason: str, initial_dialogue: str) -> str:
+        """
+        Execute the CBT planning task.
+        
+        Args:
+            client_info: Client information
+            reason: Reason for counseling
+            initial_dialogue: Initial dialogue
+            
+        Returns:
+            CBT treatment plan
+        """
+        return self.create_plan(client_info, reason, initial_dialogue)

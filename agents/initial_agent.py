@@ -4,14 +4,19 @@ from ..config import Config
 from ..utils.prompts import PromptTemplates
 from ..models.client import ClientProfile
 from ..models.session import CounselingSession
+from .base import BaseAgent
 
 
-class InitialAgent:
+class InitialAgent(BaseAgent):
     """Agent responsible for initial CBT session task: Setting Agenda."""
     
     def __init__(self):
         """Initialize the initial agent."""
         self.config = Config()
+        super().__init__(
+            system_prompt="You are a CBT therapist setting agendas for counseling sessions.",
+            tools=[]
+        )
     
     def set_agenda(self, client_profile: ClientProfile, initial_message: str) -> Dict[str, str]:
         """
@@ -37,7 +42,7 @@ class InitialAgent:
             initial_message
         )
         
-        agent = Agent(system_prompt=prompt, tools=[])
+        agent = Agent(system_prompt=prompt, tools=[], model=self.model)
         agenda_response = str(agent(""))
         
         # Parse agenda response to extract structured information
@@ -95,6 +100,19 @@ class InitialAgent:
         context_parts.append(f"Diagnosis: {client_profile.diagnosis}")
         
         return " | ".join(context_parts)
+    
+    def execute(self, client_profile: ClientProfile, initial_message: str) -> Dict[str, str]:
+        """
+        Execute the initial session task (agenda setting).
+        
+        Args:
+            client_profile: Client information from backend
+            initial_message: Client's initial message
+            
+        Returns:
+            Agenda information for CBT planner
+        """
+        return self.conduct_initial_session(client_profile, initial_message)
     
     def _parse_agenda_response(self, response: str) -> Dict[str, str]:
         """Parse the agenda setting response into structured data."""
