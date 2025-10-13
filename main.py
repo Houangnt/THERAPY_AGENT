@@ -1,4 +1,4 @@
-from CBT import CBTCounselingSystem, ClientProfile
+from . import CBTCounselingSystem, ClientProfile
 
 
 def main():

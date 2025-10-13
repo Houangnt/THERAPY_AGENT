@@ -16,7 +16,7 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
         )
         
         agent = Agent(system_prompt=prompt, tools=[], model=bedrock_model)
-        response = agent("")
+        response = agent("Generate a natural normalizing response for a single turn. Do not include meta-text or mention the technique used.")
         return str(response)
     except Exception as e:
         return f"Error in normalizing agent: {str(e)}"

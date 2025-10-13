@@ -37,7 +37,12 @@ class TechniqueSelectorAgent(BaseAgent):
         
         # Create agent with Bedrock config
         agent = Agent(system_prompt=prompt, tools=[], model=self.model)
-        response = str(agent(""))
+        response = str(agent(
+            """Generate ONLY the technique names from the list, separated by commas. Do not 
+            include explanations or possible responses.
+
+            Example format: Reflection, Questioning"""
+        ))
         
         # Parse response to extract technique names
         techniques = [t.strip() for t in response.split(',')]

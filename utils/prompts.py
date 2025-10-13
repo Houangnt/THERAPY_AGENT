@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 
 class PromptTemplates:
@@ -14,9 +14,7 @@ class PromptTemplates:
         Reason for seeking counseling: {reason}
         Counseling Dialogue: {history}
 
-        Generate a natural reflection-based response for a single turn. Do not include 
-        meta-text or mention the technique used. Ensure responses do not exactly repeat 
-        previous counselor utterances."""
+        """
     
     @staticmethod
     def questioning_prompt(client_info: str, reason: str, history: str) -> str:
@@ -28,8 +26,7 @@ class PromptTemplates:
         Reason for seeking counseling: {reason}
         Counseling Dialogue: {history}
 
-        Generate a natural questioning response for a single turn. Do not include 
-        meta-text or mention the technique used."""
+        """
     
     @staticmethod
     def solution_prompt(client_info: str, reason: str, history: str) -> str:
@@ -54,8 +51,7 @@ class PromptTemplates:
         Reason for seeking counseling: {reason}
         Counseling Dialogue: {history}
 
-        Generate a natural normalizing response for a single turn. Do not include 
-        meta-text or mention the technique used."""
+        """
     
     @staticmethod
     def psychoeducation_prompt(client_info: str, reason: str, history: str) -> str:
@@ -67,8 +63,7 @@ class PromptTemplates:
         Reason for seeking counseling: {reason}
         Counseling Dialogue: {history}
 
-        Generate a natural psycho-education response for a single turn. Do not include 
-        meta-text or mention the technique used."""
+        """
     
     @staticmethod
     def cbt_planning_prompt(techniques: str, client_info: str, 
@@ -83,8 +78,7 @@ class PromptTemplates:
         Reason for seeking counseling: {reason}
         Initial Dialogue: {initial_dialogue}
 
-        Choose an appropriate CBT technique and create a comprehensive counseling plan that 
-        outlines behavioral goals and cognitive reframing strategies."""
+        """
     
     @staticmethod
     def technique_selection_prompt(cbt_plan: str, history: str, 
@@ -102,10 +96,7 @@ class PromptTemplates:
         Available Techniques:
         {techniques}
 
-        Generate ONLY the technique names from the list, separated by commas. Do not 
-        include explanations or possible responses.
-
-        Example format: Reflection, Questioning"""
+        """
     
     @staticmethod
     def agenda_setting_prompt(client_info: str, goal: str, client_schedule_technical: str, 

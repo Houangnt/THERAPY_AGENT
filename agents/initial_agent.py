@@ -43,7 +43,7 @@ class InitialAgent(BaseAgent):
         )
         
         agent = Agent(system_prompt=prompt, tools=[], model=self.model)
-        agenda_response = str(agent(""))
+        agenda_response = str(agent(initial_message))
         
         # Parse agenda response to extract structured information
         agenda_data = self._parse_agenda_response(agenda_response)

@@ -28,7 +28,7 @@ class CBTPlannerAgent(BaseAgent):
         )
         
         agent = Agent(system_prompt=prompt, tools=[], model=self.model)
-        return str(agent(""))
+        return str(agent("Choose an appropriate CBT technique and create a comprehensive counseling plan that outlines behavioral goals and cognitive reframing strategies."))
     
     def execute(self, client_info: str, reason: str, initial_dialogue: str) -> str:
         """
