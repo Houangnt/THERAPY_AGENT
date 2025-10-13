@@ -1,6 +1,6 @@
 from strands import Agent, tool
 from strands.models import BedrockModel
-from ...utils.prompts import PromptTemplates
+from utils.prompts import PromptTemplates
 
 
 @tool

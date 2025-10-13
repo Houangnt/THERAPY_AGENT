@@ -1,10 +1,10 @@
 from typing import Dict, Optional
 from strands import Agent
-from ..models.client import ClientProfile
-from ..models.session import CounselingSession
-from ..config import Config
-from ..utils.prompts import PromptTemplates
-from ..utils.validators import validate_client_profile, validate_message
+from models.client import ClientProfile
+from models.session import CounselingSession
+from config import Config
+from utils.prompts import PromptTemplates
+from utils.validators import validate_client_profile, validate_message
 from .cbt_planner import CBTPlannerAgent
 from .initial_agent import InitialAgent
 from .technique_selector import TechniqueSelectorAgent

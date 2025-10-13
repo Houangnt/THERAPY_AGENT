@@ -1,5 +1,5 @@
-from typing import List, Optional, Dict
-from dataclasses import dataclass, field
+from typing import List, Optional, Dict, Any
+from dataclasses import dataclass, field, asdict
 
 
 @dataclass
@@ -37,3 +37,15 @@ class CounselingSession:
     def get_last_n_messages(self, n: int) -> List[Message]:
         """Retrieve last N messages from history."""
         return self.messages[-n:] if len(self.messages) >= n else self.messages
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the session to a dictionary."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'CounselingSession':
+        """Create a session from a dictionary."""
+        # Manually deserialize Message objects
+        messages_data = data.get("messages", [])
+        data["messages"] = [Message(**msg) for msg in messages_data]
+        return cls(**data)

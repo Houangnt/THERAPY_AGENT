@@ -1,9 +1,9 @@
 from typing import Dict, Optional
 from strands import Agent
-from ..config import Config
-from ..utils.prompts import PromptTemplates
-from ..models.client import ClientProfile
-from ..models.session import CounselingSession
+from config import Config
+from utils.prompts import PromptTemplates
+from models.client import ClientProfile
+from models.session import CounselingSession
 from .base import BaseAgent
 
 
@@ -43,11 +43,18 @@ class InitialAgent(BaseAgent):
         )
         
         agent = Agent(system_prompt=prompt, tools=[], model=self.model)
-        agenda_response = str(agent(initial_message))
+        agenda_response = agent("Create a clear, collaborative agenda that the client can agree to, focusing on their immediate needs and therapeutic goals")
         
         # Parse agenda response to extract structured information
-        agenda_data = self._parse_agenda_response(agenda_response)
-        
+        # agenda_data = self._parse_agenda_response(agenda_response)
+        if hasattr(agenda_response, "content"):
+            agenda_text = agenda_response.content
+        elif hasattr(agenda_response, "text"):
+            agenda_text = agenda_response.text
+        else:
+            agenda_text = str(agenda_response)
+
+        agenda_data = self._parse_agenda_response(agenda_text)
         return agenda_data
     
     def conduct_initial_session(self, client_profile: ClientProfile, 

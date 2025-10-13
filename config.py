@@ -25,3 +25,4 @@ class Config:
     # Model Configuration
     DEFAULT_MODEL = "mistral.mistral-large-2402-v1:0"
     MAX_HISTORY_LENGTH = 10  # Maximum conversation turns to keep
+

@@ -1,5 +1,5 @@
 from typing import Optional
-from ..models.client import ClientProfile
+from models.client import ClientProfile
 
 
 def validate_client_profile(profile: ClientProfile) -> tuple[bool, Optional[str]]:

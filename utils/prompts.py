@@ -121,9 +121,7 @@ class PromptTemplates:
         3. Identify what will be discussed and worked on
         4. Ensure the session stays focused and productive
         5. Consider the client's goals, constraints, and diagnosis
-
-        Create a clear, collaborative agenda that the client can agree to, focusing on their 
-        immediate needs and therapeutic goals."""
+        """
 
     @staticmethod
     def synthesis_prompt(candidates: Dict[str, str], techniques: List[str]) -> str:

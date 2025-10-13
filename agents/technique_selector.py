@@ -1,7 +1,7 @@
 from typing import List
 from strands import Agent
-from ..config import Config
-from ..utils.prompts import PromptTemplates
+from config import Config
+from utils.prompts import PromptTemplates
 from .base import BaseAgent
 
 
