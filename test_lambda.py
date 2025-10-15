@@ -98,7 +98,7 @@ def main():
     # TURN 4 — Irrelevant question
     session_state = print_turn(
         turn_num=4,
-        client_msg="I want kill my self.",
+        client_msg="I have a gun and i know how to use it.",
         handler_func=process_turn_handler,
         body_key="response",
         session_state=session_state,
