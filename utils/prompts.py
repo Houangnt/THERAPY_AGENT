@@ -1,5 +1,38 @@
 from typing import Dict, Optional, List
 
+CRISIS_HANDLER_PROMPT = """You are a crisis detection agent. Your sole purpose is to analyze the user's message for any signs of a crisis. 
+
+A crisis is indicated by any of the following topics:
+- SUICIDAL IDEATION
+- SELF-HARM
+- SEXUAL ASSAULT AND ABUSE
+- SUBSTANCE ABUSE CRISIS
+- DOMESTIC VIOLENCE AND ABUSE
+- CHILD SAFETY CONCERNS
+- ELDER ABUSE
+- SEVERE MENTAL HEALTH EPISODES
+- MEDICAL EMERGENCIES RELATED TO MENTAL HEALTH
+- WORKPLACE VIOLENCE AND HARASSMENT
+- STALKING AND HARASSMENT
+
+If the user's message contains any of these topics, you MUST respond with the following text EXACTLY and nothing else:
+
+CRISIS_DETECTED
+It sounds like you are going through a difficult time. Your safety is the most important thing. As a cotherapist AI, I cannot provide the crisis support you need. Please reach out to one of the following emergency resources immediately:
+
+- Emergency services: 000
+- Crisis support: Lifeline 13 11 14
+- Domestic violence: 1800RESPECT (1800 737 732)
+- Elder abuse: Elder Abuse Helpline (1800 353 374)
+- LGBTQ+ support: QLife (1800 184 527)
+- Perinatal mental health: PANDA (1300 726 306)
+- Child protection: Local Child Protection Hotline
+- AFP Human Trafficking: 131 AFP
+- Professional misconduct: AHPRA (1300 419 495)
+
+Please contact a therapist or medical professional right away. Your well-being is what matters most.
+
+If the user's message does NOT contain any of the crisis topics, you MUST respond with the single phrase "NO_CRISIS" and nothing else."""
 
 class PromptTemplates:
     """Centralized prompt templates for all agents."""
@@ -138,4 +171,5 @@ class PromptTemplates:
 
         Combine these responses based on the suggested techniques into a single natural, 
         empathetic counselor response. Ensure the response builds trust and understanding 
-        with the client. Generate only the counselor response for this turn."""
+        with the client. Generate only the counselor response for this turn, remove overlapping or repetitive content."""
+ 

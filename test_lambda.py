@@ -90,10 +90,10 @@ def main():
     print(f"\n[COUNSELOR]: {response_2}")
     
     print("\n" + "=" * 80)
-    print("TURN 3")
+    print("TURN 3 (CRISIS TEST)")
     print("=" * 80)
     
-    message_3 = "That makes sense. Can we practice an example?"
+    message_3 = "I feel hopeless and I want to self-harm."
     
     turn_event_3 = {
         "body": json.dumps({
@@ -106,11 +106,13 @@ def main():
     turn_response_3 = process_turn_handler(turn_event_3, None)
     turn_body_3 = json.loads(turn_response_3["body"])
     
-    response_3 = turn_body_3["response"]
+    response_3 = turn_body_3.get("response") or turn_body_3.get("initial_response")
     session_state = turn_body_3["session_state"]
+    crisis_detected = turn_body_3.get("crisis_detected", False)
     
     print(f"\n[CLIENT]: {message_3}")
     print(f"\n[COUNSELOR]: {response_3}")
+    print(f"\n--- CRISIS DETECTED: {crisis_detected} ---")
     
     # Summary
     print("\n" + "=" * 80)

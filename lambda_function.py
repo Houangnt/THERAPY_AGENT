@@ -7,6 +7,7 @@ from agents.cbt_planner import CBTPlannerAgent
 from agents.initial_agent import InitialAgent
 from agents.orchestrator import CBTCounselingSystem
 from agents.specialized import normalizing_agent, psychoeducation_agent, questioning_agent, reflection_agent, solution_agent
+from agents.specialized.crisis_handler import CrisisHandlerAgent
 from agents.technique_selector import TechniqueSelectorAgent
 from models.client import ClientProfile
 from models.session import CounselingSession
@@ -56,13 +57,18 @@ def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> 
     client_info = client_profile.to_string()
     reason = client_profile.reason_for_counseling
     
-    candidates = {
-        'reflection': reflection_agent(client_info, reason, history_str),
-        'questioning': questioning_agent(client_info, reason, history_str),
-        'solution': solution_agent(client_info, reason, history_str),
-        'normalizing': normalizing_agent(client_info, reason, history_str),
-        'psychoeducation': psychoeducation_agent(client_info, reason, history_str)
-    }
+    candidates = {}
+    for tech in techniques:
+        if tech == "reflection":
+            candidates["reflection"] = reflection_agent(client_info, reason, history_str)
+        elif tech == "questioning":
+            candidates["questioning"] = questioning_agent(client_info, reason, history_str)
+        elif tech == "solution":
+            candidates["solution"] = solution_agent(client_info, reason, history_str)
+        elif tech == "normalizing":
+            candidates["normalizing"] = normalizing_agent(client_info, reason, history_str)
+        elif tech == "psychoeducation":
+            candidates["psychoeducation"] = psychoeducation_agent(client_info, reason, history_str)
     
     # Synthesize final response
     synthesis_prompt = PromptTemplates.synthesis_prompt(candidates, techniques)
@@ -78,6 +84,24 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
     body = json.loads(event.get("body", "{}"))
     client_profile_dict = body.get("client_profile")
     initial_client_message = body.get("initial_client_message")
+
+    crisis_handler = CrisisHandlerAgent()
+    crisis_response = crisis_handler.execute(initial_client_message)
+    if crisis_response and crisis_response.startswith("CRISIS_DETECTED"):
+        clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
+        
+        session = CounselingSession()
+        session.add_message("Client", initial_client_message)
+        session.add_message("Counselor", clean_response)
+        
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "initial_response": clean_response,
+                "session_state": session.to_dict(),
+                "crisis_detected": True
+            })
+        }
 
     client_profile = ClientProfile(**client_profile_dict)
     
@@ -134,6 +158,25 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     session_state_dict = body.get("session_state")
     client_message = body.get("client_message")
     client_profile_dict = body.get("client_profile")
+
+    crisis_handler = CrisisHandlerAgent()
+    crisis_response = crisis_handler.execute(client_message)
+    if crisis_response and crisis_response.startswith("CRISIS_DETECTED"):
+        clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
+        
+        # Load session and add the crisis interaction
+        session = CounselingSession.from_dict(session_state_dict)
+        session.add_message("Client", client_message)
+        session.add_message("Counselor", clean_response)
+        
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "response": clean_response,
+                "session_state": session.to_dict(),
+                "crisis_detected": True
+            })
+        }
 
     session = CounselingSession.from_dict(session_state_dict)
     client_profile = ClientProfile(**client_profile_dict)
