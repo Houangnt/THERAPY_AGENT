@@ -33,7 +33,6 @@ def reflection_agent(client_info: str, reason: str, history: str) -> str:
             kb_text = ""
     except Exception as e:
         kb_text = f"Error retrieving KB info: {str(e)}"
-    
     prompt = PromptTemplates.reflection_prompt(client_info, reason, history, kb_text=kb_text)  
 
     try:
@@ -44,11 +43,7 @@ def reflection_agent(client_info: str, reason: str, history: str) -> str:
         )
         
         agent = Agent(system_prompt=prompt, tools=[], model=bedrock_model)
-        response = agent("""
-            Generate a natural reflection-based response for a single turn. Do not include 
-            meta-text or mention the technique used. Ensure responses do not exactly repeat 
-            previous counselor utterances.
-        """)
+        response = agent(latest_client_turn)
         return str(response)
     except Exception as e:
         return f"Error in reflection agent: {str(e)}"

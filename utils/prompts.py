@@ -121,7 +121,6 @@ class PromptTemplates:
                     Reason for counseling: {reason}
                     Conversation History: {history}
                     If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
-
                     """
 
     @staticmethod
@@ -258,6 +257,8 @@ class PromptTemplates:
         Psycho-education response: {candidates.get('psychoeducation', 'N/A')}
 
         Suggested Technique(s): {techniques_str}
+        
+        {PromptTemplates._natural_variation_guidelines()}
 
         Combine these responses based on the suggested techniques into a single natural, 
         empathetic counselor response. Ensure the response builds trust and understanding 

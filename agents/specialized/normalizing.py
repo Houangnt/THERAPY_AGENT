@@ -9,7 +9,8 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
     lines = history.strip().split("\n")
     client_lines = [l for l in lines if l.startswith("Client:")]
     latest_client_turn = client_lines[-1][len("Client: "):] if client_lines else ""
-    
+    agent = Agent(tools=[retrieve])
+
     try:
         kb_results = agent.tool.retrieve(
             text=latest_client_turn,
@@ -32,7 +33,6 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
             kb_text = ""
     except Exception as e:
         kb_text = f"Error retrieving KB info: {str(e)}"
-    
     prompt = PromptTemplates.normalizing_prompt(client_info, reason, history, kb_text=kb_text)
     
     try:
@@ -42,7 +42,7 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
             streaming=False,
         )
         agent = Agent(system_prompt=prompt, tools=[], model=bedrock_model)
-        response = agent("Generate a natural normalizing response for a single turn. Do not include meta-text or mention the technique used.")
+        response = agent(latest_client_turn)
         return str(response)
     except Exception as e:
         return f"Error in normalizing agent: {str(e)}"
