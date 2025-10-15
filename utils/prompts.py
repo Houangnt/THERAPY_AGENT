@@ -117,7 +117,7 @@ class PromptTemplates:
         """
 
     @staticmethod
-    def normalizing_prompt(client_info: str, reason: str, history: str) -> str:
+    def normalizing_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are a counselor using **normalization**.
         Validate the client's experience as understandable and common, helping reduce their sense of isolation.
 
@@ -126,10 +126,15 @@ class PromptTemplates:
         Client Info: {client_info}
         Reason for counseling: {reason}
         Dialogue History: {history}
+        Additional info from knowledge base: {kb_text}
+
+        You have access to a tool called `retrieve`, which can query a knowledge base
+        for additional relevant psychological insights or examples if needed.
+        Use it wisely when it helps you make your response more informed and empathetic.
         """
 
     @staticmethod
-    def psychoeducation_prompt(client_info: str, reason: str, history: str) -> str:
+    def psychoeducation_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are a counselor using **psychoeducation**.
         Provide clear, therapeutic insights into the client’s psychological experiences, explaining concepts simply and empathetically.
 
@@ -138,6 +143,7 @@ class PromptTemplates:
         Client Info: {client_info}
         Reason for counseling: {reason}
         Dialogue History: {history}
+        Additional info from knowledge base: {kb_text}
         """
 
     # ========= PLANNING / SYNTHESIS =========

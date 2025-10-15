@@ -1,12 +1,31 @@
 from strands import Agent, tool
 from strands.models import BedrockModel
+from strands_tools import retrieve
 from utils.prompts import PromptTemplates
-
 
 @tool
 def normalizing_agent(client_info: str, reason: str, history: str) -> str:
     
-    prompt = PromptTemplates.normalizing_prompt(client_info, reason, history)
+    lines = history.strip().split("\n")
+    client_lines = [l for l in lines if l.startswith("Client:")]
+    latest_client_turn = client_lines[-1][len("Client: "):] if client_lines else ""
+    
+    try:
+        kb_results = retrieve(
+            text=latest_client_turn,
+            numberOfResults=1,
+            score=0.3,
+            knowledgeBaseId="UHCCSWKNZF",
+            region="ap-southeast-2",
+            retrieveFilter={
+            "startsWith": {"key": "approach", "value": "NORMALIZING"},
+            }
+        )
+        kb_text = "\n".join([r["text"] for r in kb_results]) if kb_results else ""
+    except Exception as e:
+        kb_text = f"Error retrieving KB info: {str(e)}"
+    
+    prompt = PromptTemplates.normalizing_prompt(client_info, reason, history, kb_text=kb_text)
     
     try:
         bedrock_model = BedrockModel(
@@ -14,7 +33,6 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
             region_name="ap-southeast-2",
             streaming=False,
         )
-        
         agent = Agent(system_prompt=prompt, tools=[], model=bedrock_model)
         response = agent("Generate a natural normalizing response for a single turn. Do not include meta-text or mention the technique used.")
         return str(response)

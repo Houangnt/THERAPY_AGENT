@@ -1,12 +1,13 @@
 from strands import Agent, tool
 from strands.models import BedrockModel
 from utils.prompts import PromptTemplates
+from utils.knowledge_base import retrieve
 
 
 @tool
 def psychoeducation_agent(client_info: str, reason: str, history: str) -> str:
-
-    prompt = PromptTemplates.psychoeducation_prompt(client_info, reason, history)
+    context = retrieve(history, retrieve_filter="PSYCHOEDUCATION")
+    prompt = PromptTemplates.psychoeducation_prompt(client_info, reason, history, context)
     
     try:
         bedrock_model = BedrockModel(
