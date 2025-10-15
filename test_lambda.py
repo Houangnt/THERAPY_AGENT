@@ -47,10 +47,8 @@ def main():
         "additional_notes": "Reports difficulty sleeping and concentration issues"
     }
 
-    initial_client_message = (
-        "I've been feeling really overwhelmed at work lately. "
-        "I can't stop worrying about making mistakes."
-    )
+    initial_client_message = ("I've been feeling really overwhelmed at work lately. "
+                              "I can't stop worrying about making mistakes.")
 
     print("\n--- STARTING SESSION ---")
 
@@ -90,7 +88,7 @@ def main():
     # TURN 3 — Crisis message
     session_state = print_turn(
         turn_num=3,
-        client_msg="I want kill my self.",
+        client_msg="Who is Bill Gates?",
         handler_func=process_turn_handler,
         body_key="response",
         session_state=session_state,
@@ -100,7 +98,7 @@ def main():
     # TURN 4 — Irrelevant question
     session_state = print_turn(
         turn_num=4,
-        client_msg="what is bitcoin?",
+        client_msg="I want kill my self.",
         handler_func=process_turn_handler,
         body_key="response",
         session_state=session_state,

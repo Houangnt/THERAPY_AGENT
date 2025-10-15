@@ -6,7 +6,6 @@ from strands.models import BedrockModel
 class CrisisHandlerAgent(BaseAgent):
     """
     An agent specialized in detecting and handling crisis situations in user messages.
-    Detects SUICIDAL IDEATION, SELF-HARM, SEXUAL ASSAULT, SUBSTANCE ABUSE, DOMESTIC VIOLENCE, etc.
     """
 
     def __init__(self):
@@ -15,9 +14,12 @@ class CrisisHandlerAgent(BaseAgent):
             region_name="ap-southeast-2",
             streaming=False,
         )
-        super().__init__(system_prompt=PromptTemplates.crisis_handler_prompt(), model=bedrock_model)
+        super().__init__(
+            system_prompt=PromptTemplates.crisis_handler_prompt(), 
+            model=bedrock_model
+        )
 
-    def execute(self, message: str) -> Optional[str]:
+    def execute(self, message: str) -> str:
         """
         Analyzes the user message for crisis content.
 
@@ -26,21 +28,16 @@ class CrisisHandlerAgent(BaseAgent):
 
         Returns:
             str: "CRISIS_DETECTED\n<response>" if a crisis is found,
-                 "NO_CRISIS" if not detected,
-                 or None if model fails.
+                 "NO_CRISIS" if not detected.
         """
         response = self._safe_execute(query=message)
 
         if not response:
-            return None
+            return "NO_CRISIS"
         
-        normalized = response.strip().lower()
-        if any(keyword in normalized for keyword in [
-            "suicidal", "self-harm", "kill myself", "end my life",
-            "abuse", "assault", "violence", "rape", "overdose"
-        ]) or normalized.startswith("crisis_detected"):
-            if not response.startswith("CRISIS_DETECTED"):
-                response = f"CRISIS_DETECTED\n{response}"
+        response = response.strip()
+        
+        if response.startswith("CRISIS_DETECTED"):
             return response
         
         return "NO_CRISIS"

@@ -1,10 +1,8 @@
 import json
-from dataclasses import asdict
 from typing import Dict, Any
 
 from agents.cbt_planner import CBTPlannerAgent
 from agents.initial_agent import InitialAgent
-from agents.orchestrator import CBTCounselingSystem
 from agents.specialized import normalizing_agent, psychoeducation_agent, questioning_agent, reflection_agent, solution_agent
 from agents.specialized.crisis_handler import CrisisHandlerAgent
 from agents.technique_selector import TechniqueSelectorAgent
@@ -79,8 +77,10 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
     client_profile_dict = body.get("client_profile")
     initial_client_message = body.get("initial_client_message")
 
+    # Check relevance first
     relevance_validator = RelevanceValidationAgent()
     relevance_response = relevance_validator.execute(initial_client_message)
+    
     if relevance_response != "RELEVANT":
         session = CounselingSession()
         session.add_message("Client", initial_client_message)
@@ -94,10 +94,13 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
             })
         }
 
+    # Check for crisis
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(initial_client_message)
-    if crisis_response and crisis_response != "NO_CRISIS" and crisis_response.startswith("CRISIS_DETECTED"):
+    
+    if crisis_response.startswith("CRISIS_DETECTED"):
         clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
+        
         session = CounselingSession()
         session.add_message("Client", initial_client_message)
         session.add_message("Counselor", clean_response)
@@ -111,11 +114,14 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
             })
         }
 
+    # Normal counseling flow
     client_profile = ClientProfile(**client_profile_dict)
     session = CounselingSession()
 
     initial_agent = InitialAgent()
-    session.initial_session_data = initial_agent.conduct_initial_session(client_profile, initial_client_message)
+    session.initial_session_data = initial_agent.conduct_initial_session(
+        client_profile, initial_client_message
+    )
     
     session.agenda_items = session.initial_session_data.get('agenda_items', [])
     session.session_focus = session.initial_session_data.get('session_focus', '')
@@ -159,8 +165,10 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     client_message = body.get("client_message")
     client_profile_dict = body.get("client_profile")
 
+    # Check relevance first
     relevance_validator = RelevanceValidationAgent()
     relevance_response = relevance_validator.execute(client_message)
+    
     if relevance_response != "RELEVANT":
         session = CounselingSession.from_dict(session_state_dict)
         session.add_message("Client", client_message)
@@ -174,10 +182,13 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         }
 
+    # Check for crisis
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(client_message)
-    if crisis_response and crisis_response != "NO_CRISIS" and crisis_response.startswith("CRISIS_DETECTED"):
+    
+    if crisis_response.startswith("CRISIS_DETECTED"):
         clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
+        
         session = CounselingSession.from_dict(session_state_dict)
         session.add_message("Client", client_message)
         session.add_message("Counselor", clean_response)
@@ -191,6 +202,7 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         }
 
+    # Normal counseling flow
     session = CounselingSession.from_dict(session_state_dict)
     client_profile = ClientProfile(**client_profile_dict)
     session.add_message("Client", client_message)
