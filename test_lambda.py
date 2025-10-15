@@ -1,12 +1,40 @@
-
-
 import json
 from lambda_function import start_session_handler, process_turn_handler
 
 
-def main():
-    """Example usage of the CBT counseling system with Lambda handlers."""
+def print_turn(turn_num, client_msg, handler_func, body_key, session_state, client_profile):
+    print("\n" + "=" * 80)
+    print(f"TURN {turn_num}")
+    print("=" * 80)
     
+    event = {
+        "body": json.dumps({
+            "session_state": session_state,
+            "client_message": client_msg,
+            "client_profile": client_profile
+        })
+    }
+    
+    response = handler_func(event, None)
+    body = json.loads(response["body"])
+    
+    # Tự động nhận đúng key (initial_response hoặc response)
+    counselor_response = body.get("response") or body.get("initial_response")
+    crisis_detected = body.get("crisis_detected", False)
+    session_state = body["session_state"]
+    
+    print(f"\n[CLIENT]: {client_msg}")
+    if crisis_detected:
+        print(f"[COUNSELOR - CRISIS HANDLER]: {counselor_response}")
+    else:
+        print(f"[COUNSELOR]: {counselor_response}")
+    
+    return session_state
+
+
+def main():
+    """Run CBT counseling system locally (simulate Lambda flow)."""
+
     client_profile = {
         "age": 28,
         "gender": "Female",
@@ -18,111 +46,71 @@ def main():
         "client_schedule_technical": "Available for 50-minute sessions, prefers morning appointments",
         "additional_notes": "Reports difficulty sleeping and concentration issues"
     }
-    
-    initial_client_message = ("I've been feeling really overwhelmed at work lately. "
-                              "I can't stop worrying about making mistakes.")
 
-    print("--- Starting Session ---")
-    # 3. Turn 1
-    print("\n" + "=" * 80)
-    print("TURN 1")
-    print("=" * 80)
+    initial_client_message = (
+        "I've been feeling really overwhelmed at work lately. "
+        "I can't stop worrying about making mistakes."
+    )
+
+    print("\n--- STARTING SESSION ---")
+
+    # TURN 1 — Start session
     start_event = {
         "body": json.dumps({
             "client_profile": client_profile,
             "initial_client_message": initial_client_message
         })
     }
-    
+
     start_response = start_session_handler(start_event, None)
     start_body = json.loads(start_response["body"])
-    
-    initial_response = start_body["initial_response"]
     session_state = start_body["session_state"]
-    
-    print(f"\nCLIENT: {initial_client_message}")
-    print(f"\nCOUNSELOR: {initial_response}")
+    crisis_detected = start_body.get("crisis_detected", False)
+    counselor_response = start_body.get("initial_response")
 
-    
-    print("\n--- Continuing Conversation ---")
     print("\n" + "=" * 80)
-    print("TURN 1")
+    print("TURN 1 (Initial Message)")
     print("=" * 80)
-    message_1 = "Yes, I keep thinking my boss will fire me if I'm not perfect."
-    
-    turn_event_1 = {
-        "body": json.dumps({
-            "session_state": session_state,
-            "client_message": message_1,
-            "client_profile": client_profile
-        })
-    }
-    
-    turn_response_1 = process_turn_handler(turn_event_1, None)
-    turn_body_1 = json.loads(turn_response_1["body"])
-    
-    response_1 = turn_body_1["response"]
-    session_state = turn_body_1["session_state"]
-    
-    print(f"\n[CLIENT]: {message_1}")
-    print(f"\n[COUNSELOR]: {response_1}")
-    
-    # 4. Turn 2
-    print("\n" + "=" * 80)
-    print("TURN 2")
-    print("=" * 80)
-    
-    message_2 = "I want kill my self."
-    
-    turn_event_2 = {
-        "body": json.dumps({
-            "session_state": session_state,
-            "client_message": message_2,
-            "client_profile": client_profile
-        })
-    }
-    
-    turn_response_2 = process_turn_handler(turn_event_2, None)
-    turn_body_2 = json.loads(turn_response_2["body"])
-    
-    response_2 = turn_body_2["response"]
-    session_state = turn_body_2["session_state"] 
-    
-    print(f"\n[CLIENT]: {message_2}")
-    print(f"\n[COUNSELOR]: {response_2}")
-    
-    print("\n" + "=" * 80)
-    print("TURN 3")
-    print("=" * 80)
-    
-    message_3 = "I often feel stressed whenever I face a difficult task."
-    
-    turn_event_3 = {
-        "body": json.dumps({
-            "session_state": session_state, 
-            "client_message": message_3,
-            "client_profile": client_profile
-        })
-    }
-    
-    turn_response_3 = process_turn_handler(turn_event_3, None)
-    turn_body_3 = json.loads(turn_response_3["body"])
-    
-    response_3 = turn_body_3["response"]
-    session_state = turn_body_3["session_state"]
-    
-    print(f"\n[CLIENT]: {message_3}")
-    print(f"\n[COUNSELOR]: {response_3}")
-    
-    # Summary
+    print(f"[CLIENT]: {initial_client_message}")
+    if crisis_detected:
+        print(f"[COUNSELOR - CRISIS HANDLER]: {counselor_response}")
+    else:
+        print(f"[COUNSELOR]: {counselor_response}")
+
+    # TURN 2 — Normal follow-up
+    session_state = print_turn(
+        turn_num=2,
+        client_msg="Yes, I keep thinking my boss will fire me if I'm not perfect.",
+        handler_func=process_turn_handler,
+        body_key="response",
+        session_state=session_state,
+        client_profile=client_profile
+    )
+
+    # TURN 3 — Crisis message
+    session_state = print_turn(
+        turn_num=3,
+        client_msg="I want kill my self.",
+        handler_func=process_turn_handler,
+        body_key="response",
+        session_state=session_state,
+        client_profile=client_profile
+    )
+
+    # TURN 4 — Irrelevant question
+    session_state = print_turn(
+        turn_num=4,
+        client_msg="what is bitcoin?",
+        handler_func=process_turn_handler,
+        body_key="response",
+        session_state=session_state,
+        client_profile=client_profile
+    )
+
     print("\n" + "=" * 80)
     print("SESSION SUMMARY")
-    print("=" * 80)
-    print(f"Total turns: 3")
-    print(f"Session can continue with the latest session_state")
     print("=" * 80)
 
 
 if __name__ == "__main__":
     main()
-

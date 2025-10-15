@@ -8,6 +8,7 @@ from agents.orchestrator import CBTCounselingSystem
 from agents.specialized import normalizing_agent, psychoeducation_agent, questioning_agent, reflection_agent, solution_agent
 from agents.specialized.crisis_handler import CrisisHandlerAgent
 from agents.technique_selector import TechniqueSelectorAgent
+from agents.relevance_validator import RelevanceValidationAgent
 from models.client import ClientProfile
 from models.session import CounselingSession
 from strands.models import BedrockModel
@@ -78,6 +79,21 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
     client_profile_dict = body.get("client_profile")
     initial_client_message = body.get("initial_client_message")
 
+    relevance_validator = RelevanceValidationAgent()
+    relevance_response = relevance_validator.execute(initial_client_message)
+    if relevance_response != "RELEVANT":
+        session = CounselingSession()
+        session.add_message("Client", initial_client_message)
+        session.add_message("Counselor", relevance_response)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "initial_response": relevance_response,
+                "session_state": session.to_dict(),
+                "crisis_detected": False
+            })
+        }
+
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(initial_client_message)
     if crisis_response and crisis_response != "NO_CRISIS" and crisis_response.startswith("CRISIS_DETECTED"):
@@ -136,11 +152,27 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
         })
     }
 
+
 def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body = json.loads(event.get("body", "{}"))
     session_state_dict = body.get("session_state")
     client_message = body.get("client_message")
     client_profile_dict = body.get("client_profile")
+
+    relevance_validator = RelevanceValidationAgent()
+    relevance_response = relevance_validator.execute(client_message)
+    if relevance_response != "RELEVANT":
+        session = CounselingSession.from_dict(session_state_dict)
+        session.add_message("Client", client_message)
+        session.add_message("Counselor", relevance_response)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "response": relevance_response,
+                "session_state": session.to_dict(),
+                "crisis_detected": False
+            })
+        }
 
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(client_message)

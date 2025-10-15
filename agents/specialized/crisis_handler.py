@@ -1,6 +1,6 @@
 from typing import Optional
 from agents.base import BaseAgent
-from utils.prompts import CRISIS_HANDLER_PROMPT
+from utils.prompts import PromptTemplates
 from strands.models import BedrockModel
 
 class CrisisHandlerAgent(BaseAgent):
@@ -15,7 +15,7 @@ class CrisisHandlerAgent(BaseAgent):
             region_name="ap-southeast-2",
             streaming=False,
         )
-        super().__init__(system_prompt=CRISIS_HANDLER_PROMPT, model=bedrock_model)
+        super().__init__(system_prompt=PromptTemplates.crisis_handler_prompt(), model=bedrock_model)
 
     def execute(self, message: str) -> Optional[str]:
         """
@@ -43,4 +43,4 @@ class CrisisHandlerAgent(BaseAgent):
                 response = f"CRISIS_DETECTED\n{response}"
             return response
         
-        return "NO_CRISIS\n"
+        return "NO_CRISIS"
