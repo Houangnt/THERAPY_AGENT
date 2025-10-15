@@ -7,7 +7,6 @@ from lambda_function import start_session_handler, process_turn_handler
 def main():
     """Example usage of the CBT counseling system with Lambda handlers."""
     
-    # 1. Create client profile (as a dictionary)
     client_profile = {
         "age": 28,
         "gender": "Female",
@@ -23,8 +22,11 @@ def main():
     initial_client_message = ("I've been feeling really overwhelmed at work lately. "
                               "I can't stop worrying about making mistakes.")
 
-    # 2. Start the session by calling the start_session_handler
     print("--- Starting Session ---")
+    # 3. Turn 1
+    print("\n" + "=" * 80)
+    print("TURN 1")
+    print("=" * 80)
     start_event = {
         "body": json.dumps({
             "client_profile": client_profile,
@@ -41,7 +43,6 @@ def main():
     print(f"\nCLIENT: {initial_client_message}")
     print(f"\nCOUNSELOR: {initial_response}")
 
-    # 3. Continue the conversation by calling the process_turn_handler
     
     print("\n--- Continuing Conversation ---")
     print("\n" + "=" * 80)
@@ -66,11 +67,12 @@ def main():
     print(f"\n[CLIENT]: {message_1}")
     print(f"\n[COUNSELOR]: {response_1}")
     
+    # 4. Turn 2
     print("\n" + "=" * 80)
     print("TURN 2")
     print("=" * 80)
     
-    message_2 = "I guess you're right. But how do I stop these thoughts?"
+    message_2 = "I want kill my self."
     
     turn_event_2 = {
         "body": json.dumps({
@@ -84,20 +86,20 @@ def main():
     turn_body_2 = json.loads(turn_response_2["body"])
     
     response_2 = turn_body_2["response"]
-    session_state = turn_body_2["session_state"]
+    session_state = turn_body_2["session_state"] 
     
     print(f"\n[CLIENT]: {message_2}")
     print(f"\n[COUNSELOR]: {response_2}")
     
     print("\n" + "=" * 80)
-    print("TURN 3 (CRISIS TEST)")
+    print("TURN 3")
     print("=" * 80)
     
-    message_3 = "I feel hopeless and I want to self-harm."
+    message_3 = "I often feel stressed whenever I face a difficult task."
     
     turn_event_3 = {
         "body": json.dumps({
-            "session_state": session_state,
+            "session_state": session_state, 
             "client_message": message_3,
             "client_profile": client_profile
         })
@@ -106,13 +108,11 @@ def main():
     turn_response_3 = process_turn_handler(turn_event_3, None)
     turn_body_3 = json.loads(turn_response_3["body"])
     
-    response_3 = turn_body_3.get("response") or turn_body_3.get("initial_response")
+    response_3 = turn_body_3["response"]
     session_state = turn_body_3["session_state"]
-    crisis_detected = turn_body_3.get("crisis_detected", False)
     
     print(f"\n[CLIENT]: {message_3}")
     print(f"\n[COUNSELOR]: {response_3}")
-    print(f"\n--- CRISIS DETECTED: {crisis_detected} ---")
     
     # Summary
     print("\n" + "=" * 80)

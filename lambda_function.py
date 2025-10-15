@@ -1,4 +1,3 @@
-
 import json
 from dataclasses import asdict
 from typing import Dict, Any
@@ -15,6 +14,8 @@ from strands.models import BedrockModel
 from utils.prompts import PromptTemplates
 from strands import Agent
 from config import Config
+
+# ================== INTERNAL HELPERS ==================
 
 def _get_orchestrator():
     bedrock_model = BedrockModel(
@@ -41,19 +42,12 @@ def _get_orchestrator():
 def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> str:
     """Internal method to process a counseling turn."""
     config = Config()
-    history_str = session.get_history_string(
-        max_messages=config.MAX_HISTORY_LENGTH
-    )
+    history_str = session.get_history_string(max_messages=config.MAX_HISTORY_LENGTH)
     
-    # Select appropriate techniques
     technique_selector = TechniqueSelectorAgent()
-    techniques = technique_selector.select_techniques(
-        session.cbt_plan,
-        history_str
-    )
+    techniques = technique_selector.select_techniques(session.cbt_plan, history_str)
     session.selected_techniques = techniques
     
-    # Generate candidate responses from all specialized agents
     client_info = client_profile.to_string()
     reason = client_profile.reason_for_counseling
     
@@ -70,15 +64,14 @@ def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> 
         elif tech == "psychoeducation":
             candidates["psychoeducation"] = psychoeducation_agent(client_info, reason, history_str)
     
-    # Synthesize final response
     synthesis_prompt = PromptTemplates.synthesis_prompt(candidates, techniques)
     orchestrator = _get_orchestrator()
     final_response = str(orchestrator(synthesis_prompt))
     
-    # Add to history
     session.add_message("Counselor", final_response)
-    
     return final_response
+
+# ================== MAIN HANDLERS ==================
 
 def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     body = json.loads(event.get("body", "{}"))
@@ -87,9 +80,8 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
 
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(initial_client_message)
-    if crisis_response and crisis_response.startswith("CRISIS_DETECTED"):
+    if crisis_response and crisis_response != "NO_CRISIS" and crisis_response.startswith("CRISIS_DETECTED"):
         clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
-        
         session = CounselingSession()
         session.add_message("Client", initial_client_message)
         session.add_message("Counselor", clean_response)
@@ -104,21 +96,14 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
         }
 
     client_profile = ClientProfile(**client_profile_dict)
-    
     session = CounselingSession()
-    
-    # Conduct initial session task (agenda setting)
+
     initial_agent = InitialAgent()
-    session.initial_session_data = initial_agent.conduct_initial_session(
-        client_profile,
-        initial_client_message
-    )
+    session.initial_session_data = initial_agent.conduct_initial_session(client_profile, initial_client_message)
     
-    # Store agenda information in session
     session.agenda_items = session.initial_session_data.get('agenda_items', [])
     session.session_focus = session.initial_session_data.get('session_focus', '')
     
-    # Create CBT plan with agenda context
     agenda_summary = session.initial_session_data.get('agenda_summary', '')
     combined_context = session.initial_session_data.get('combined_context', '')
     
@@ -139,17 +124,15 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
         initial_client_message
     )
     
-    # Add to history
     session.add_message("Client", initial_client_message)
-    
-    # Generate initial response
     initial_response = _process_turn(session, client_profile)
     
     return {
         "statusCode": 200,
         "body": json.dumps({
             "initial_response": initial_response,
-            "session_state": session.to_dict()
+            "session_state": session.to_dict(),
+            "crisis_detected": False
         })
     }
 
@@ -161,10 +144,8 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     crisis_handler = CrisisHandlerAgent()
     crisis_response = crisis_handler.execute(client_message)
-    if crisis_response and crisis_response.startswith("CRISIS_DETECTED"):
+    if crisis_response and crisis_response != "NO_CRISIS" and crisis_response.startswith("CRISIS_DETECTED"):
         clean_response = crisis_response.replace("CRISIS_DETECTED\n", "", 1)
-        
-        # Load session and add the crisis interaction
         session = CounselingSession.from_dict(session_state_dict)
         session.add_message("Client", client_message)
         session.add_message("Counselor", clean_response)
@@ -180,15 +161,14 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     session = CounselingSession.from_dict(session_state_dict)
     client_profile = ClientProfile(**client_profile_dict)
-
     session.add_message("Client", client_message)
-    
     response = _process_turn(session, client_profile)
     
     return {
         "statusCode": 200,
         "body": json.dumps({
             "response": response,
-            "session_state": session.to_dict()
+            "session_state": session.to_dict(),
+            "crisis_detected": False
         })
     }

@@ -6,6 +6,7 @@ from strands.models import BedrockModel
 class CrisisHandlerAgent(BaseAgent):
     """
     An agent specialized in detecting and handling crisis situations in user messages.
+    Detects SUICIDAL IDEATION, SELF-HARM, SEXUAL ASSAULT, SUBSTANCE ABUSE, DOMESTIC VIOLENCE, etc.
     """
 
     def __init__(self):
@@ -21,10 +22,25 @@ class CrisisHandlerAgent(BaseAgent):
         Analyzes the user message for crisis content.
 
         Args:
-            message: The user's message to analyze.
+            message (str): The user's message to analyze.
 
         Returns:
-            The crisis response if a crisis is detected, otherwise "NO_CRISIS".
+            str: "CRISIS_DETECTED\n<response>" if a crisis is found,
+                 "NO_CRISIS" if not detected,
+                 or None if model fails.
         """
         response = self._safe_execute(query=message)
-        return response
+
+        if not response:
+            return None
+        
+        normalized = response.strip().lower()
+        if any(keyword in normalized for keyword in [
+            "suicidal", "self-harm", "kill myself", "end my life",
+            "abuse", "assault", "violence", "rape", "overdose"
+        ]) or normalized.startswith("crisis_detected"):
+            if not response.startswith("CRISIS_DETECTED"):
+                response = f"CRISIS_DETECTED\n{response}"
+            return response
+        
+        return "NO_CRISIS\n"
