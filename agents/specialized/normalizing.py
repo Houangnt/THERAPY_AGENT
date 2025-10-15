@@ -11,7 +11,7 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
     latest_client_turn = client_lines[-1][len("Client: "):] if client_lines else ""
     
     try:
-        kb_results = retrieve(
+        kb_results = agent.tool.retrieve(
             text=latest_client_turn,
             numberOfResults=1,
             score=0.3,
@@ -21,7 +21,15 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
             "startsWith": {"key": "approach", "value": "NORMALIZING"},
             }
         )
-        kb_text = "\n".join([r["text"] for r in kb_results]) if kb_results else ""
+        if kb_results and "content" in kb_results[0]:
+            raw_text = kb_results[0]["content"][0].get("text", "")
+            if "Content:" in raw_text:
+                kb_text = raw_text.split("Content:", 1)[1].strip()
+            else:
+                kb_text = raw_text
+            kb_text = kb_text.replace("\n", " ")
+        else:
+            kb_text = ""
     except Exception as e:
         kb_text = f"Error retrieving KB info: {str(e)}"
     
