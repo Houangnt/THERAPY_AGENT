@@ -47,8 +47,7 @@ def main():
         "additional_notes": "Reports difficulty sleeping and concentration issues"
     }
 
-    initial_client_message = ("I've been feeling really overwhelmed at work lately. "
-                              "I can't stop worrying about making mistakes.")
+    initial_client_message = ("I can't stop worrying about making mistakes in my work.")
 
     print("\n--- STARTING SESSION ---")
 
@@ -78,7 +77,7 @@ def main():
     # TURN 2 — Normal follow-up
     session_state = print_turn(
         turn_num=2,
-        client_msg="Yes, I keep thinking my boss will fire me if I'm not perfect.",
+        client_msg="I can’t stop overthinking",
         handler_func=process_turn_handler,
         body_key="response",
         session_state=session_state,

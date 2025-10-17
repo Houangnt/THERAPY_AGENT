@@ -16,15 +16,15 @@ def psychoeducation_agent(client_info: str, reason: str, history: str) -> str:
         kb_results = agent.tool.retrieve(
             text=latest_client_turn,
             numberOfResults=1,
-            score=0.3,
+            score=0.7,
             knowledgeBaseId="UHCCSWKNZF",
             region="ap-southeast-2",
             retrieveFilter={
             "startsWith": {"key": "approach", "value": "PSYCHOEDUCATION"},
             }
         )
-        if kb_results and "content" in kb_results[0]:
-            raw_text = kb_results[0]["content"][0].get("text", "")
+        if kb_results and "content" in kb_results:
+            raw_text = kb_results["content"][0].get("text", "")
             if "Content:" in raw_text:
                 kb_text = raw_text.split("Content:", 1)[1].strip()
             else:
@@ -34,7 +34,9 @@ def psychoeducation_agent(client_info: str, reason: str, history: str) -> str:
             kb_text = ""
     except Exception as e:
         kb_text = f"Error retrieving KB info: {str(e)}"
-
+    
+    print(f"[DEBUG] input text querying: {latest_client_turn}")
+    print(f"[DEBUG] RAG content for psychoeducation_agent: '{kb_text}'")
     prompt = PromptTemplates.psychoeducation_prompt(client_info, reason, history, kb_text=kb_text)
     
     try:

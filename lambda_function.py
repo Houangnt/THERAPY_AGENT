@@ -43,32 +43,42 @@ def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> 
     config = Config()
     history_str = session.get_history_string(max_messages=config.MAX_HISTORY_LENGTH)
     
+    # --- Select the single best technique ---
     technique_selector = TechniqueSelectorAgent()
-    techniques = technique_selector.select_techniques(session.cbt_plan, history_str)
-    session.selected_techniques = techniques
-    
+    best = technique_selector.execute(session.cbt_plan, history_str)  # Returns dict
+    selected_technique = best["technique"]
+    selected_score = best["score"]
+    session.selected_techniques = [selected_technique]
+
+    # --- Prepare client info ---
     client_info = client_profile.to_string()
     reason = client_profile.reason_for_counseling
-    
-    candidates = {}
-    for tech in techniques:
-        if tech == "reflection":
-            candidates["reflection"] = reflection_agent(client_info, reason, history_str)
-        elif tech == "questioning":
-            candidates["questioning"] = questioning_agent(client_info, reason, history_str)
-        elif tech == "solution":
-            candidates["solution"] = solution_agent(client_info, reason, history_str)
-        elif tech == "normalizing":
-            candidates["normalizing"] = normalizing_agent(client_info, reason, history_str)
-        elif tech == "psychoeducation":
-            candidates["psychoeducation"] = psychoeducation_agent(client_info, reason, history_str)
-    
-    synthesis_prompt = PromptTemplates.synthesis_prompt(candidates, techniques)
+
+    # --- Map technique to agent function ---
+    techniques_map = {
+        "Reflection": reflection_agent,
+        "Questioning": questioning_agent,
+        "Providing solutions": solution_agent,
+        "Normalization": normalizing_agent,
+        "Psycho-education": psychoeducation_agent
+    }
+
+    # --- Call the corresponding agent ---
+    agent_func = techniques_map[selected_technique]
+    counselor_response = agent_func(client_info, reason, history_str)
+
+    # --- Build synthesis prompt ---
+    candidates = {selected_technique: counselor_response}
+    synthesis_prompt = PromptTemplates.synthesis_prompt(candidates, [selected_technique])
+
+    # --- Generate final output from orchestrator ---
     orchestrator = _get_orchestrator()
     final_response = str(orchestrator(synthesis_prompt))
-    
+
+    # --- Save response to session ---
     session.add_message("Counselor", final_response)
     return final_response
+
 
 # ================== MAIN HANDLERS ==================
 

@@ -1,0 +1,57 @@
+session_state: 
+{
+  "messages": [
+    {
+      "role": "Client",
+      "content": "I've been feeling really overwhelmed at work lately. I can't stop worrying about making mistakes."
+    },
+    {
+      "role": "Counselor",
+      "content": "It sounds like work has been very stressful for you lately, and you're holding yourself to high standards. Let's explore what specific thoughts come up when you worry about mistakes, so we can better understand and manage them."
+    }
+  ],
+  "agenda_items": [
+    "Discuss work stress and perfectionism",
+    "Identify anxious thoughts around mistakes"
+  ],
+  "session_focus": "Exploring anxiety triggers related to work performance",
+  "goals": ["Reduce anxiety at work", "Increase self-compassion"],
+  "priorities": ["Immediate relief from stress", "Develop healthier thought patterns"],
+  "agenda_summary": "Client experiences work-related anxiety and perfectionism. Session will focus on identifying triggers and reframing thoughts.",
+  "combined_context": "Session Focus: Exploring anxiety triggers related to work performance | Agenda Items: Discuss work stress and perfectionism, Identify anxious thoughts around mistakes | Session Goals: Reduce anxiety at work, Increase self-compassion | Priorities: Immediate relief from stress, Develop healthier thought patterns | Client Goal: Reduce anxiety and improve work performance | Diagnosis: Generalized Anxiety Disorder (GAD)",
+  "cbt_plan": {
+    "techniques": ["Cognitive restructuring", "Behavioral experiments", "Relaxation training"],
+    "rationale": "To address anxiety related to perfectionism and work performance"
+  },
+  "selected_techniques": ["Reflection", "Questioning", "Normalizing"]
+}
+
+process_turn_handler:
+{
+  "messages": [
+    {
+      "role": "Client",
+      "content": "I've been feeling really overwhelmed at work lately. I can't stop worrying about making mistakes."
+    },
+    {
+      "role": "Counselor",
+      "content": "It sounds like work has been very stressful for you lately, and you're holding yourself to high standards. Let's explore what specific thoughts come up when you worry about mistakes, so we can better understand and manage them."
+    },
+    {
+      "role": "Client",
+      "content": "Yes, I keep thinking my boss will fire me if I'm not perfect."
+    },
+    {
+      "role": "Counselor",
+      "content": "That fear sounds very intense — it's understandable to feel that pressure. Let's look at whether there's evidence supporting this thought, or if it might be driven by your perfectionism."
+    }
+  ],
+  "cbt_plan": {
+    "techniques": ["Cognitive restructuring", "Behavioral experiments", "Relaxation training"],
+    "rationale": "To address anxiety related to perfectionism and work performance"
+  },
+  "selected_techniques": ["Questioning", "Reflection"],
+  "agenda_items": ["Discuss work stress and perfectionism", "Identify anxious thoughts around mistakes"],
+  "session_focus": "Exploring anxiety triggers related to work performance",
+  "combined_context": "Session Focus: Exploring anxiety triggers related to work performance | Agenda Items: Discuss work stress and perfectionism, Identify anxious thoughts around mistakes | Client Goal: Reduce anxiety and improve work performance | Diagnosis: Generalized Anxiety Disorder (GAD)"
+}

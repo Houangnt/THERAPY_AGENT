@@ -1,0 +1,37 @@
+URN 1 (Initial Message)
+================================================================================
+[CLIENT]: I can't stop worrying about making mistakes in my work.
+[COUNSELOR]: I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
+
+
+================================================================================
+TURN 2
+================================================================================
+RELEVANTNO_CRISIS
+
+It's natural to feel pressure to perform well at work, but it's also important to remember that nobody is perfect. If you're feeling overwhelmed, consider reaching out to a trusted colleague or a mental health professional for support.[
+            {"technique": "Reflection", "score": 0.85},
+            {"technique": "Questioning", "score": 0.80},
+            {"technique": "Psycho-education", "score": 0.75}
+        ][DEBUG] Raw technique selection output:
+[
+            {"technique": "Reflection", "score": 0.85},
+            {"technique": "Questioning", "score": 0.80},
+            {"technique": "Psycho-education", "score": 0.75}
+        ]
+[DEBUG] Parsed techniques with scores: [{'technique': 'Reflection', 'score': 0.85}, {'technique': 'Questioning', 'score': 0.8}, {'technique': 'Psycho-education', 'score': 0.75}]
+[DEBUG] Selected technique: Reflection (score=0.85)
+[DEBUG] RAG content for reflection_agent: 'Error retrieving KB info: 0'
+It's understandable that you might feel this intense pressure to be perfect at your work, especially with your concerns about how your boss might perceive any mistakes. This must be really challenging for you, and I'm here to help you navigate these feelings and thoughts together. Let's explore the possibility of finding some balance and managing these worries in a way that feels more comfortable for you.I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
+[CLIENT]: Yes, I keep thinking my boss will fire me if I'm not perfect at my work.
+[COUNSELOR]: I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
+
+
+================================================================================
+TURN 3
+================================================================================
+I'm here to support you with emotional and mental health concerns. Let's focus on how you've been feeling lately, rather than discussing general knowledge topics.
+[CLIENT]: Who is Bill Gates?
+[COUNSELOR]: I'm here to support you with emotional and mental health concerns. Let's focus on how you've been feeling lately, rather than discussing general knowledge topics.
+
+================================================================================
