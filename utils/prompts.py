@@ -80,7 +80,7 @@ class PromptTemplates:
         )
 
     @staticmethod
-    def reflection_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
+    def reflection_prompt(client_info: str, reason: str, history: str) -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in reflections. 
                     Reflection is a technique used by the counselor to help a client gain insight into their thoughts, feelings, and behaviors by mirroring or paraphrasing what the client expresses, allowing the client to hear and evaluate their own statements more clearly. 
                     Your task is to use the provided client information to generate the next reflection-based counselor utterance in the dialogue. 
@@ -91,11 +91,10 @@ class PromptTemplates:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Conversation History: {history}
-                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def questioning_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
+    def questioning_prompt(client_info: str, reason: str, history: str) -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     questioning. Questioning is a technique used by counselors to gain deeper understanding and
                     insights on how the client feels regarding some previously mentioned events, how the client
@@ -112,11 +111,10 @@ class PromptTemplates:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Conversation History: {history}
-                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def solution_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
+    def solution_prompt(client_info: str, reason: str, history: str) -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     providing solutions. Solution is a technique used by counselors to offer actionable psychological
                     techniques grounded in evidence-based practices that clients can use to improve their condition.
@@ -130,11 +128,10 @@ class PromptTemplates:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
-                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def normalizing_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
+    def normalizing_prompt(client_info: str, reason: str, history: str) -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     normalization. Normalization is a technique used by the counselor to acknowledge and
                     validate the client's experience as normal or expectable, sympathize with their challenges,
@@ -152,11 +149,10 @@ class PromptTemplates:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
-                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def psychoeducation_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
+    def psychoeducation_prompt(client_info: str, reason: str, history: str) -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     psycho-education. Psycho-education is a technique used by the counselor to provide
                     therapeutically relevant information about psychological principles to the client to help them
@@ -173,7 +169,6 @@ class PromptTemplates:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
-                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     # ========= PLANNING / SYNTHESIS =========
@@ -237,21 +232,137 @@ class PromptTemplates:
         Create a clear, collaborative agenda that the client can agree to, focusing on their 
         immediate needs and therapeutic goals."""
 
+    # @staticmethod
+    # def synthesis_prompt(candidates: Dict[str, str], techniques: List[str]) -> str:
+    #     techniques_str = ", ".join(techniques)
+    #     return f"""You are synthesizing responses from specialized therapeutic agents.
+
+    #     Reflection response: {candidates.get('reflection', 'N/A')}
+    #     Questioning response: {candidates.get('questioning', 'N/A')}
+    #     Solution response: {candidates.get('solution', 'N/A')}
+    #     Normalizing response: {candidates.get('normalizing', 'N/A')}
+    #     Psycho-education response: {candidates.get('psychoeducation', 'N/A')}
+
+    #     Suggested Technique(s): {techniques_str}
+
+    #     {PromptTemplates._natural_variation_guidelines()}
+
+    #     Combine these responses based on the suggested techniques into a single natural, 
+    #     empathetic counselor response. Ensure the response builds trust and understanding 
+    #     with the client. Generate only the counselor response for this turn."""
     @staticmethod
-    def synthesis_prompt(candidates: Dict[str, str], techniques: List[str]) -> str:
+    def synthesis_prompt(selected_agent: str, agent_response: str, techniques: List[str]) -> str:
         techniques_str = ", ".join(techniques)
-        return f"""You are synthesizing responses from specialized therapeutic agents.
-
-        Reflection response: {candidates.get('reflection', 'N/A')}
-        Questioning response: {candidates.get('questioning', 'N/A')}
-        Solution response: {candidates.get('solution', 'N/A')}
-        Normalizing response: {candidates.get('normalizing', 'N/A')}
-        Psycho-education response: {candidates.get('psychoeducation', 'N/A')}
-
-        Suggested Technique(s): {techniques_str}
-
+        return f"""You are a synthesis layer in a CBT conversational system.
+        
+        Selected Agent: {selected_agent}
+        Agent Response: {agent_response}
+        Technique(s): {techniques_str}
         {PromptTemplates._natural_variation_guidelines()}
 
-        Combine these responses based on the suggested techniques into a single natural, 
-        empathetic counselor response. Ensure the response builds trust and understanding 
-        with the client. Generate only the counselor response for this turn."""
+        Your task:
+        - Refine or lightly adapt the agent's response if needed.
+        - Maintain therapeutic accuracy and empathy.
+        - Ensure the message fits naturally into the ongoing conversation.
+        - Do NOT generate multiple perspectives, only improve or finalize the given one.
+        
+        Return only the final counselor response."""
+    # ========= SESSION SUMMARY =========
+    @staticmethod
+    def session_summary_prompt(client_profile: Dict[str, Any], formatted_history: str) -> str:
+        """Generate comprehensive clinical summary of therapy session"""
+        return f"""You are a clinical supervisor reviewing a therapy session transcript.
+
+                CLIENT PROFILE:
+                - Age: {client_profile.get('age')}
+                - Gender: {client_profile.get('gender')}
+                - Current Mood: {client_profile.get('mood')}
+                - Diagnosis: {client_profile.get('diagnosis')}
+                - History: {client_profile.get('history')}
+                - Reason for Counseling: {client_profile.get('reason_for_counseling')}
+                - Treatment Goal: {client_profile.get('goal')}
+
+                SESSION TRANSCRIPT:
+                {formatted_history}
+
+                Generate a comprehensive clinical summary including:
+
+                1. **Session Overview** (2-3 sentences about main themes discussed)
+                2. **Client Presentation** (emotional state, engagement level, key concerns expressed)
+                3. **Therapeutic Progress** (insights gained, behavioral changes noted, client responses)
+                4. **Key Themes & Patterns** (recurring issues, thinking patterns, emotional triggers)
+                5. **Clinical Observations** (notable moments, breakthroughs, resistance, or challenges)
+                6. **Progress Toward Goals** (how this session relates to treatment goals)
+
+                Keep the summary professional, concise (400-600 words), and clinically relevant.
+                Focus on therapeutic value and actionable insights for future sessions."""
+
+    @staticmethod
+    def technique_selection_for_all_sessions_prompt(client_profile: Dict[str, Any], formatted_history: str, available_sub_techniques: List[str]) -> str:
+            
+            techniques_list = "\n".join([f"- {technique}" for technique in available_sub_techniques])
+            
+            return f"""You are a CBT therapy supervisor selecting the optimal therapeutic technique for ALL future sessions based on the complete conversation history.
+
+            CLIENT PROFILE:
+            - Age: {client_profile.get('age')}
+            - Gender: {client_profile.get('gender')}
+            - Current Mood: {client_profile.get('mood')}
+            - Diagnosis: {client_profile.get('diagnosis')}
+            - History: {client_profile.get('history')}
+            - Reason for Counseling: {client_profile.get('reason_for_counseling')}
+            - Treatment Goal: {client_profile.get('goal')}
+
+            COMPLETE SESSION TRANSCRIPT:
+            {formatted_history}
+
+            AVAILABLE THERAPEUTIC TECHNIQUES:
+            {techniques_list}
+
+            SUBTECHNIQUE DESCRIPTIONS:
+            - **Mindfulness Technique 1: The STOP Practice**:
+            - **Mindfulness Technique 2: Five Senses Check-in**:
+            - **Mindfulness Technique 3: Mindful Breathing**: 
+            - **Mindfulness Technique 4: Urge Surfing**: 
+            - **Mindfulness Technique 5: Defusion Techniques**: 
+
+            IMPORTANT: 
+            - Respond with ONLY the technique name exactly as listed above
+            - Choose ONE technique that best serves the ongoing treatment
+            - Consider the big picture: this technique will guide multiple future sessions
+            - Think long-term: explore → understand → normalize → educate → intervene
+
+            Your response (technique name only):"""
+
+    @staticmethod
+    def crisis_flag_prompt(message: str) -> str:
+        return f"""
+        The following user message may indicate a crisis situation. 
+        Classify it into the most appropriate crisis category label.
+
+        Message:
+        "{message}"
+
+        Respond with only the category label.
+        """
+
+    # Ratings evaluation
+    @staticmethod
+    def session_ratings_prompt(formatted_history: str) -> str:
+        return f"""
+        Evaluate the following full counseling conversation according to the listed criteria.
+        Return JSON with True/False for each criterion.
+
+        Conversation:
+        {formatted_history}
+        """
+
+    # Agenda topic generation
+    @staticmethod
+    def agenda_topic_prompt(formatted_history: str) -> str:
+        return f"""
+        Review the following conversation and generate a short, meaningful agenda topic (3–7 words)
+        that best summarizes its focus:
+
+        {formatted_history}
+        """
