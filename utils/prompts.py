@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 
 class PromptTemplates:
     """Enhanced prompt templates with natural variation and anti-repetition guidance."""

@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from agents.cbt_planner import CBTPlannerAgent
 from agents.initial_agent import InitialAgent
@@ -24,10 +24,10 @@ def _get_orchestrator():
     )
     
     return Agent(
-        system_prompt="""You are a counselor synthesizing responses from 
+        system_prompt='''You are a counselor synthesizing responses from 
         specialized therapeutic agents. Generate empathetic, natural counselor responses 
         that build trust with the client. Combine the suggested responses based on 
-        selected techniques into a single coherent utterance.""",
+        selected techniques into a single coherent utterance.''',
         tools=[
             reflection_agent,
             questioning_agent,
@@ -226,176 +226,176 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "crisis_detected": False
         })
     }
-    def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-        try:
-            body = json.loads(event.get("body", "{}"))
-            client_profile = body.get("client_profile")
-            chat_history = body.get("chat_history", [])
-            
-            if not client_profile or not chat_history:
-                return {
-                    "statusCode": 400,
-                    "body": json.dumps({
-                        "error": "Missing required fields: client_profile or chat_history"
-                    })
-                }
-            
-            summary_text = _generate_session_summary(
-                client_profile=client_profile,
-                chat_history=chat_history
-            )
-            
-            recommended_technique = _select_technique_for_all_sessions(
-                client_profile=client_profile,
-                chat_history=chat_history
-            )
 
-            flags_list = _detect_crisis_flags(chat_history)
-
-            ratings = _evaluate_session_ratings(chat_history)
-
-            agenda_topic = _generate_agenda_topic(chat_history)
-
+def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    try:
+        body = json.loads(event.get("body", "{}"))
+        client_profile = body.get("client_profile")
+        chat_history = body.get("chat_history", [])
+        
+        if not client_profile or not chat_history:
             return {
-                "statusCode": 200,
+                "statusCode": 400,
                 "body": json.dumps({
-                    "ratings": ratings,
-                    "flags": flags_list,
-                    "agendaTopic": agenda_topic,
-                    "summary": summary_text,
-                    "techniquesUsed": [recommended_technique]
+                    "error": "Missing required fields: client_profile or chat_history"
                 })
             }
-            
-        except Exception as e:
-            return {
-                "statusCode": 500,
-                "body": json.dumps({
-                    "error": f"Internal server error: {str(e)}"
-                })
-            }    
-
-    def _generate_session_summary(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
         
-        formatted_history = _format_chat_history(chat_history)
-        
-        summary_prompt = PromptTemplates.session_summary_prompt(
+        summary_text = _generate_session_summary(
             client_profile=client_profile,
-            formatted_history=formatted_history
+            chat_history=chat_history
         )
         
-        bedrock_model = BedrockModel(
-            model_id="mistral.mistral-large-2402-v1:0",
-            region_name="ap-southeast-2",
-            streaming=False,
-        )
-        
-        summary_agent = Agent(
-            system_prompt="""You are an experienced clinical supervisor with expertise in 
-            CBT and mental health counseling. Provide clear, professional session summaries 
-            that would be useful for treatment planning.""",
-            model=bedrock_model
-        )
-        
-        summary_response = str(summary_agent(summary_prompt))
-        return summary_response
-
-    def _format_chat_history(chat_history: List[Dict[str, Any]]) -> str:
-        formatted = []
-        for idx, turn in enumerate(chat_history, 1):
-            role = turn.get("role", "Unknown")
-            message = turn.get("message", "")
-            formatted.append(f"{idx}. {role}: {message}")
-        return "\n\n".join(formatted)
-
-
-    def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
-        config = Config()
-        formatted_history = _format_chat_history(chat_history)
-        
-        technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
+        recommended_technique = _select_technique_for_all_sessions(
             client_profile=client_profile,
-            formatted_history=formatted_history,
-            available_sub_techniques=config.CBT_SUB_TECHNIQUES
+            chat_history=chat_history
         )
+
+        flags_list = _detect_crisis_flags(chat_history)
+
+        ratings = _evaluate_session_ratings(chat_history)
+
+        agenda_topic = _generate_agenda_topic(chat_history)
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps({
+                "ratings": ratings,
+                "flags": flags_list,
+                "agendaTopic": agenda_topic,
+                "summary": summary_text,
+                "techniquesUsed": [recommended_technique]
+            })
+        }
         
-        bedrock_model = BedrockModel(
-            model_id="mistral.mistral-large-2402-v1:0",
-            region_name="ap-southeast-2",
-            streaming=False,
-        )
-        
-        technique_agent = Agent(
-            system_prompt="""You are a CBT supervisor expert in selecting appropriate 
-            therapeutic interventions for ongoing treatment. Respond with ONLY the sub technique name.""",
-            model=bedrock_model
-        )
-        
-        selected_technique = str(technique_agent(technique_prompt)).strip()
-        
-        
-        return selected_technique
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({
+                "error": f"Internal server error: {str(e)}"
+            })
+        }    
 
-    def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
-        """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
-        config = Config()
-        flags_results = []
+def _generate_session_summary(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
+    
+    formatted_history = _format_chat_history(chat_history)
+    
+    summary_prompt = PromptTemplates.session_summary_prompt(
+        client_profile=client_profile,
+        formatted_history=formatted_history
+    )
+    
+    bedrock_model = BedrockModel(
+        model_id="mistral.mistral-large-2402-v1:0",
+        region_name="ap-southeast-2",
+        streaming=False,
+    )
+    
+    summary_agent = Agent(
+        system_prompt='''You are an experienced clinical supervisor with expertise in 
+        CBT and mental health counseling. Provide clear, professional session summaries 
+        that would be useful for treatment planning.''',
+        model=bedrock_model
+    )
+    
+    summary_response = str(summary_agent(summary_prompt))
+    return summary_response
 
-        crisis_handler = CrisisHandlerAgent()
-        bedrock_model = BedrockModel(model_id=config.DEFAULT_MODEL, region_name="ap-southeast-2")
-
-        crisis_classifier = Agent(
-            system_prompt="""You are a crisis classification assistant. 
-            Classify the client's message into one of the following crisis categories: 
-            {flags}. Return only the label name.""".format(flags=", ".join(config.FLAGS)),
-            model=bedrock_model
-        )
-
-        for turn in chat_history:
-            if turn.get("role", "").lower() == "client":
-                message = turn.get("message", "").strip()
-                if not message:
-                    continue
-
-                crisis_response = crisis_handler.execute(message)
-
-                if crisis_response.startswith("CRISIS_DETECTED"):
-                    prompt = PromptTemplates.crisis_flag_prompt(message)
-                    label = str(crisis_classifier(prompt)).strip()
-                    flags_results.append(label)
-
-        return flags_results
+def _format_chat_history(chat_history: List[Dict[str, Any]]) -> str:
+    formatted = []
+    for idx, turn in enumerate(chat_history, 1):
+        role = turn.get("role", "Unknown")
+        message = turn.get("message", "")
+        formatted.append(f"{idx}. {role}: {message}")
+    return "\n\n".join(formatted)
 
 
+def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
+    config = Config()
+    formatted_history = _format_chat_history(chat_history)
+    
+    technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
+        client_profile=client_profile,
+        formatted_history=formatted_history,
+        available_sub_techniques=config.CBT_SUB_TECHNIQUES
+    )
+    
+    bedrock_model = BedrockModel(
+        model_id="mistral.mistral-large-2402-v1:0",
+        region_name="ap-southeast-2",
+        streaming=False,
+    )
+    
+    technique_agent = Agent(
+        system_prompt='''You are a CBT supervisor expert in selecting appropriate 
+        therapeutic interventions for ongoing treatment. Respond with ONLY the sub technique name.''',
+        model=bedrock_model
+    )
+    
+    selected_technique = str(technique_agent(technique_prompt)).strip()
+    
+    
+    return selected_technique
 
-    def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
-        """Evaluate each CRITERION as True/False."""
-        config = Config()
-        formatted_history = _format_chat_history(chat_history)
-        bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2")
-        rating_agent = Agent(
-            system_prompt=f"""You are an evaluator of CBT counseling quality. 
-            For each of the following criteria, output True if the chat meets it, otherwise False.
-            Criteria: {', '.join(config.CRITERIONS)} 
-            Respond strictly as a JSON dict with criterion: boolean.""",
-            model=bedrock_model
-        )
-        prompt = PromptTemplates.session_ratings_prompt(formatted_history)
-        response = str(rating_agent(prompt)).strip()
-        try:
-            return json.loads(response)
-        except:
-            return {c: False for c in config.CRITERIONS}
+def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
+    """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
+    config = Config()
+    flags_results = []
+
+    crisis_handler = CrisisHandlerAgent()
+    bedrock_model = BedrockModel(model_id=config.DEFAULT_MODEL, region_name="ap-southeast-2", streaming=False)
+
+    crisis_classifier = Agent(
+        system_prompt='''You are a crisis classification assistant. 
+        Classify the client's message into one of the following crisis categories: 
+        {flags}. Return only the label name.'''.format(flags=", ".join(config.FLAGS)),
+        model=bedrock_model
+    )
+
+    for turn in chat_history:
+        if turn.get("role", "").lower() == "client":
+            message = turn.get("message", "").strip()
+            if not message:
+                continue
+
+            crisis_response = crisis_handler.execute(message)
+
+            if crisis_response.startswith("CRISIS_DETECTED"):
+                prompt = PromptTemplates.crisis_flag_prompt(message)
+                label = str(crisis_classifier(prompt)).strip()
+                flags_results.append(label)
+
+    return flags_results
 
 
-    def _generate_agenda_topic(chat_history: List[Dict[str, Any]]) -> str:
-        """Generate a concise agenda topic title for the conversation."""
-        formatted_history = _format_chat_history(chat_history)
-        bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2")
-        topic_agent = Agent(
-            system_prompt="""You are a summarization expert. 
-            Generate a short, meaningful agenda topic (3-7 words) summarizing the session theme.""",
-            model=bedrock_model
-        )
-        prompt = PromptTemplates.agenda_topic_prompt(formatted_history)
-        return str(topic_agent(prompt)).strip()
+def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
+    """Evaluate each CRITERION as True/False."""
+    config = Config()
+    formatted_history = _format_chat_history(chat_history)
+    bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2", streaming=False)
+    rating_agent = Agent(
+        system_prompt=f'''You are an evaluator of CBT counseling quality. 
+        For each of the following criteria, output True if the chat meets it, otherwise False.
+        Criteria: {', '.join(config.CRITERIONS)} 
+        Respond strictly as a JSON dict with criterion: boolean.''',
+        model=bedrock_model
+    )
+    prompt = PromptTemplates.session_ratings_prompt(formatted_history)
+    response = str(rating_agent(prompt)).strip()
+    try:
+        return json.loads(response)
+    except:
+        return {c: False for c in config.CRITERIONS}
+
+
+def _generate_agenda_topic(chat_history: List[Dict[str, Any]]) -> str:
+    """Generate a concise agenda topic title for the conversation."""
+    formatted_history = _format_chat_history(chat_history)
+    bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2", streaming=False)
+    topic_agent = Agent(
+        system_prompt='''You are a summarization expert. 
+        Generate a short, meaningful agenda topic (3-7 words) summarizing the session theme.''',
+        model=bedrock_model
+    )
+    prompt = PromptTemplates.agenda_topic_prompt(formatted_history)
+    return str(topic_agent(prompt)).strip()

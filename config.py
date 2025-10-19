@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Set
 
-class Config:    
+class Config:
     # CBT Techniques
     CBT_TECHNIQUES: List[str] = [
         "Cognitive Interventions",
@@ -12,7 +12,7 @@ class Config:
         "CBT Foundations and Psychoeducation",
         "Values and Motivation Work"
     ]
-    
+
     # Therapeutic agents
     THERAPY_AGENTS: List[str] = [
         "Reflection",
@@ -29,7 +29,7 @@ class Config:
         "Mindfulness Technique 4: Urge Surfing",
         "Mindfulness Technique 5: Defusion Techniques"
     ]
-    CRITERIONS : List[str] = {
+    CRITERIONS: Set[str] = {
         "Response richness",
         "Message reciprocity",
         "Time spent",
@@ -37,7 +37,7 @@ class Config:
         "Insight statement",
         "Self-reflection",
         "Curiosity or experimentation",
-        "Emotional expression"
+        "Emotional expression",
         "Containment",
         "Affective shift",
         "Clarity gained",
@@ -53,14 +53,13 @@ class Config:
         "Willingness to return"
     }
 
-    FLAGS : List[str]{
+    FLAGS: List[str] = [
         "Direct Suicidal Statement",
         "Indirect Suicidal Expression",
         "Hopeless/Pointless Statements",
         "Planning/Method Discussion",
         "Saying Goodbye/Finality"
-    }
+    ]
     # Model Configuration
     DEFAULT_MODEL = "mistral.mistral-large-2402-v1:0"
     MAX_HISTORY_LENGTH = 10  # Maximum conversation turns to keep
-

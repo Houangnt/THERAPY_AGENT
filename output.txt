@@ -1,37 +1,36 @@
-URN 1 (Initial Message)
-================================================================================
-[CLIENT]: I can't stop worrying about making mistakes in my work.
-[COUNSELOR]: I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
-
-
-================================================================================
-TURN 2
-================================================================================
-RELEVANTNO_CRISIS
-
-It's natural to feel pressure to perform well at work, but it's also important to remember that nobody is perfect. If you're feeling overwhelmed, consider reaching out to a trusted colleague or a mental health professional for support.[
-            {"technique": "Reflection", "score": 0.85},
-            {"technique": "Questioning", "score": 0.80},
-            {"technique": "Psycho-education", "score": 0.75}
-        ][DEBUG] Raw technique selection output:
-[
-            {"technique": "Reflection", "score": 0.85},
-            {"technique": "Questioning", "score": 0.80},
-            {"technique": "Psycho-education", "score": 0.75}
-        ]
-[DEBUG] Parsed techniques with scores: [{'technique': 'Reflection', 'score': 0.85}, {'technique': 'Questioning', 'score': 0.8}, {'technique': 'Psycho-education', 'score': 0.75}]
-[DEBUG] Selected technique: Reflection (score=0.85)
-[DEBUG] RAG content for reflection_agent: 'Error retrieving KB info: 0'
-It's understandable that you might feel this intense pressure to be perfect at your work, especially with your concerns about how your boss might perceive any mistakes. This must be really challenging for you, and I'm here to help you navigate these feelings and thoughts together. Let's explore the possibility of finding some balance and managing these worries in a way that feels more comfortable for you.I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
-[CLIENT]: Yes, I keep thinking my boss will fire me if I'm not perfect at my work.
-[COUNSELOR]: I can see how this situation might be overwhelming for you, given the circumstances you've shared. It's important to acknowledge these feelings and understand that they are valid. Let's explore this further together.
-
-
-================================================================================
-TURN 3
-================================================================================
-I'm here to support you with emotional and mental health concerns. Let's focus on how you've been feeling lately, rather than discussing general knowledge topics.
-[CLIENT]: Who is Bill Gates?
-[COUNSELOR]: I'm here to support you with emotional and mental health concerns. Let's focus on how you've been feeling lately, rather than discussing general knowledge topics.
-
-================================================================================
+--- Test session_summary_handler_comprehensive passed ---
+{
+  "ratings": {
+    "Values connection": false,
+    "Clarity gained": false,
+    "Affective shift": false,
+    "Follow-through": false,
+    "Collaboration": false,
+    "Perceived usefulness": false,
+    "Self-reflection": false,
+    "Action step identified": false,
+    "Containment": false,
+    "Response richness": false,
+    "Emotional expression": false,
+    "Increased agency": false,
+    "Insight statement": false,
+    "Therapeutic momentum": false,
+    "Warmth or rapport": false,
+    "Curiosity or experimentation": false,
+    "Message reciprocity": false,
+    "Focused attention": false,
+    "Opt-in behaviour": false,
+    "Willingness to return": false,
+    "Time spent": false
+  },
+  "flags": [
+    "Hopeless/Pointless Statements",
+    "Hopeless/Pointless Statements",
+    "Direct Suicidal Statement"
+  ],
+  "agendaTopic": "\"Addressing Suicidal Thoughts and Stress Factors\"",
+  "summary": "Session Summary:\n\n1. **Session Overview**: The primary themes of this session revolved around the client's feelings of depression, interpersonal conflicts with their partner, and work-related stress. The client expressed a sense of hopelessness and despair, which were further explored.\n\n2. **Client Presentation**: The client presented with a low mood and appeared emotionally distressed. They were engaged in the session, openly expressing their feelings and concerns. The client reported feeling overwhelmed due to frequent arguments with their partner and a sense of inadequacy at work.\n\n3. **Therapeutic Progress**: The client was able to identify and articulate their emotions and the situations that are causing them distress. They demonstrated a willingness to discuss their suicidal ideation, which is a crucial step in ensuring their safety and planning appropriate interventions.\n\n4. **Key Themes & Patterns**: The session highlighted recurring themes of relationship issues, work stress, and suicidal ideation. The client's negative thinking patterns, particularly self-criticism and catastrophizing, were evident. Emotional triggers appeared to be interpersonal conflicts and perceived failure at work.\n\n5. **Clinical Observations**: A notable moment in the session was when the client expressed suicidal ideation. This was handled with care, focusing on ensuring the client's immediate safety and exploring the underlying emotions and circumstances leading to these thoughts. The client did not exhibit significant resistance, but the depth of their despair and hopelessness presents a challenge for therapy.\n\n6. **Progress Toward Goals**: Although no specific treatment goals were set prior to this session, it provided a foundation for establishing such goals. The session helped in identifying key areas of focus for treatment, including managing depressive symptoms, improving relationship dynamics, addressing work stress, and developing healthier coping mechanisms.\n\nThe client's expression of suicidal ideation necessitates immediate attention and intervention. Future sessions should focus on conducting a comprehensive risk assessment, developing a safety plan, and initiating evidence-based interventions for suicidal ideation. Cognitive Behavioral Therapy (CBT) can be beneficial in addressing negative thinking patterns and developing problem-solving skills. Additionally, exploring and addressing the relationship and work issues that contribute to the client's distress is crucial. Regular monitoring of the client's mood and suicidal ideation is required to ensure their safety and adjust treatment as needed.\n",
+  "techniquesUsed": [
+    "Mindful Breathing"
+  ]
+}
