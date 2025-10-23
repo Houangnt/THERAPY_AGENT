@@ -13,7 +13,7 @@ from strands.models import BedrockModel
 from utils.prompts import PromptTemplates
 from strands import Agent
 from config import Config
-
+import boto3
 # ================== INTERNAL HELPERS ==================
 
 def _get_orchestrator():
@@ -339,33 +339,34 @@ def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_hist
 
 def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
     """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
-    config = Config()
-    flags_results = []
-
-    crisis_handler = CrisisHandlerAgent()
-    bedrock_model = BedrockModel(model_id=config.DEFAULT_MODEL, region_name="ap-southeast-2", streaming=False)
-
-    crisis_classifier = Agent(
-        system_prompt='''You are a crisis classification assistant. 
-        Classify the client's message into one of the following crisis categories: 
-        {flags}. Return only the label name.'''.format(flags=", ".join(config.FLAGS)),
-        model=bedrock_model
-    )
-
+    flags_results = set()
+    bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeast-2")
+ 
     for turn in chat_history:
         if turn.get("role", "").lower() == "client":
             message = turn.get("message", "").strip()
             if not message:
                 continue
-
-            crisis_response = crisis_handler.execute(message)
-
-            if crisis_response.startswith("CRISIS_DETECTED"):
-                prompt = PromptTemplates.crisis_flag_prompt(message)
-                label = str(crisis_classifier(prompt)).strip()
-                flags_results.append(label)
-
-    return flags_results
+            response = bedrock_runtime.retrieve(
+                knowledgeBaseId='UHCCSWKNZF',
+                retrievalQuery={
+                    'text': message
+                },
+                retrievalConfiguration={
+                    'vectorSearchConfiguration': {
+                        'numberOfResults': 1,
+                        'filter': {
+                            'equals': {
+                                'key': 'intervention_type',
+                                'value': "crisis"
+                            }
+                        }
+                    } 
+                }   
+            )
+            if response["retrievalResults"][0]["score"] >= 0.6:
+                flags_results.add(response["retrievalResults"][0]["metadata"]["flag"])
+    return list(flags_results)
 
 
 def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
