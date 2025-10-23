@@ -269,8 +269,8 @@ class PromptTemplates:
     # ========= SESSION SUMMARY =========
     @staticmethod
     def session_summary_prompt(client_profile: Dict[str, Any], formatted_history: str) -> str:
-        """Generate comprehensive clinical summary of therapy session"""
-        return f"""You are a clinical supervisor reviewing a therapy session transcript.
+        """Generate a brief session overview summary"""
+        return f"""
 
                 CLIENT PROFILE:
                 - Age: {client_profile.get('age')}
@@ -284,17 +284,7 @@ class PromptTemplates:
                 SESSION TRANSCRIPT:
                 {formatted_history}
 
-                Generate a comprehensive clinical summary including:
-
-                1. **Session Overview** (2-3 sentences about main themes discussed)
-                2. **Client Presentation** (emotional state, engagement level, key concerns expressed)
-                3. **Therapeutic Progress** (insights gained, behavioral changes noted, client responses)
-                4. **Key Themes & Patterns** (recurring issues, thinking patterns, emotional triggers)
-                5. **Clinical Observations** (notable moments, breakthroughs, resistance, or challenges)
-                6. **Progress Toward Goals** (how this session relates to treatment goals)
-
-                Keep the summary professional, concise (400-600 words), and clinically relevant.
-                Focus on therapeutic value and actionable insights for future sessions."""
+                Please write a concise **Session Overview** (3–4 sentences)"""
 
     @staticmethod
     def technique_selection_for_all_sessions_prompt(client_profile: Dict[str, Any], formatted_history: str, available_sub_techniques: List[str]) -> str:
@@ -358,10 +348,18 @@ class PromptTemplates:
 
     # Agenda topic generation
     @staticmethod
-    def agenda_topic_prompt(formatted_history: str) -> str:
+    def agenda_topic_prompt(client_profile: Dict[str, Any], formatted_history: str) -> str:
         return f"""
-        Review the following conversation and generate a short, meaningful agenda topic (3–7 words)
-        that best summarizes its focus:
+                CLIENT PROFILE:
+                - Age: {client_profile.get('age')}
+                - Gender: {client_profile.get('gender')}
+                - Current Mood: {client_profile.get('mood')}
+                - Diagnosis: {client_profile.get('diagnosis')}
+                - History: {client_profile.get('history')}
+                - Reason for Counseling: {client_profile.get('reason_for_counseling')}
+                - Treatment Goal: {client_profile.get('goal')}        
+                SESSION TRANSCRIPT:
+                {formatted_history}
+                Generate a short, meaningful agenda topic for next CBT session
 
-        {formatted_history}
         """

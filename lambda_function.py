@@ -389,7 +389,7 @@ def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, b
         return {c: False for c in config.CRITERIONS}
 
 
-def _generate_agenda_topic(chat_history: List[Dict[str, Any]]) -> str:
+def _generate_agenda_topic(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
     """Generate a concise agenda topic title for the conversation."""
     formatted_history = _format_chat_history(chat_history)
     bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2", streaming=False)
@@ -398,5 +398,5 @@ def _generate_agenda_topic(chat_history: List[Dict[str, Any]]) -> str:
         Generate a short, meaningful agenda topic (3-7 words) summarizing the session theme.''',
         model=bedrock_model
     )
-    prompt = PromptTemplates.agenda_topic_prompt(formatted_history)
+    prompt = PromptTemplates.agenda_topic_prompt(client_profile, formatted_history)
     return str(topic_agent(prompt)).strip()
