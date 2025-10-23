@@ -6,10 +6,6 @@ from strands import Agent, tool
 from strands_tools import retrieve
 
 class CrisisHandlerAgent(BaseAgent):
-    """
-    An agent specialized in detecting and handling crisis situations in user messages.
-    Now enhanced with RAG (retrieval-augmented generation) from a knowledge base.
-    """
 
     def __init__(self):
         self.model = BedrockModel(
@@ -18,23 +14,18 @@ class CrisisHandlerAgent(BaseAgent):
             streaming=False,
         )
         super().__init__(
-            system_prompt=None,  # prompt sẽ tạo động khi execute()
+            system_prompt=None,
             model=self.model
         )
 
     def execute(self, message: str) -> str:
-        """
-        Analyzes the user message for crisis content with RAG support.
-        Returns "CRISIS_DETECTED\n<response>" or "NO_CRISIS"
-        """
-        # Step 1: Retrieve knowledge base info
         agent = Agent(tools=[retrieve])
         try:
             kb_results = agent.tool.retrieve(
                 text=message,
                 numberOfResults=1,
                 score=0.7,
-                knowledgeBaseId="UHCCSWKNZF",  # ID của bạn
+                knowledgeBaseId="UHCCSWKNZF",  
                 region="ap-southeast-2",
                 retrieveFilter={"startsWith": {"key": "approach", "value": "CRISIS"}}
             )
@@ -53,16 +44,13 @@ class CrisisHandlerAgent(BaseAgent):
         print(f"[DEBUG] input text querying (crisis): {message}")
         print(f"[DEBUG] RAG content for crisis_handler: '{kb_text}'")
 
-        # Step 2: Construct crisis handler prompt (with KB content)
         prompt = PromptTemplates.crisis_handler_prompt()
         if kb_text:
             prompt += f"\n\nAdditional guidance from knowledge base:\n{kb_text}\n"
 
-        # Step 3: Call Bedrock model with updated prompt
         crisis_agent = Agent(system_prompt=prompt, tools=[], model=self.model)
         response = str(crisis_agent(message)).strip()
 
-        # Step 4: Post-process response
         if not response:
             return "NO_CRISIS"
 
