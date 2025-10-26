@@ -277,12 +277,68 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 #             })
 #         }    
 
+# def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+#     try:
+#         body = json.loads(event.get("body", "{}"))
+#         client_profile = body.get("client_profile")
+#         chat_history = body.get("chat_history", [])
+#         client_subtechniques = body.get("client_subtechniques", [])
+#         criterions = body.get("criterions", [])
+
+#         if not client_profile or not chat_history:
+#             return {
+#                 "statusCode": 400,
+#                 "body": json.dumps({
+#                     "error": "Missing required fields: client_profile or chat_history"
+#                 })
+#             }
+        
+#         summary_text = _generate_session_summary(
+#             client_profile=client_profile,
+#             chat_history=chat_history
+#         )
+        
+#         recommended_technique = _select_technique_for_all_sessions(
+#             client_profile=client_profile,
+#             chat_history=chat_history
+#         )
+
+#         flags_list = _detect_crisis_flags(chat_history)
+
+#         ratings = _evaluate_session_ratings(chat_history)
+
+#         agenda_topic = _generate_agenda_topic(client_profile, chat_history)
+
+#         techniques_used = [recommended_technique] if recommended_technique else []
+
+#         return {
+#             "statusCode": 200,
+#             "body": json.dumps({
+#                 "ratings": ratings,
+#                 "flags": flags_list,
+#                 "agendaTopic": agenda_topic,
+#                 "summary": summary_text,
+#                 "techniquesUsed": techniques_used  # Will be [] if all irrelevant
+#             })
+#         }
+        
+#     except Exception as e:
+#         import traceback
+#         return {
+#             "statusCode": 500,
+#             "body": json.dumps({
+#                 "error": f"Internal server error: {str(e)}",
+#                 "traceback": traceback.format_exc()
+#             })
+#         }
 def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         body = json.loads(event.get("body", "{}"))
         client_profile = body.get("client_profile")
         chat_history = body.get("chat_history", [])
-        
+        client_subtechniques = body.get("client_techniques", [])  # ← Nhận từ frontend
+        criterions = body.get("criterions", [])
+
         if not client_profile or not chat_history:
             return {
                 "statusCode": 400,
@@ -298,12 +354,13 @@ def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, An
         
         recommended_technique = _select_technique_for_all_sessions(
             client_profile=client_profile,
-            chat_history=chat_history
+            chat_history=chat_history,
+            client_subtechniques=client_subtechniques
         )
 
         flags_list = _detect_crisis_flags(chat_history)
 
-        ratings = _evaluate_session_ratings(chat_history)
+        ratings = _evaluate_session_ratings(chat_history, criterions)
 
         agenda_topic = _generate_agenda_topic(client_profile, chat_history)
 
@@ -316,7 +373,7 @@ def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, An
                 "flags": flags_list,
                 "agendaTopic": agenda_topic,
                 "summary": summary_text,
-                "techniquesUsed": techniques_used  # Will be [] if all irrelevant
+                "techniquesUsed": techniques_used
             })
         }
         
@@ -409,15 +466,50 @@ def _is_session_relevant(chat_history: List[Dict[str, Any]]) -> bool:
     
 #     return selected_technique
 
-def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
-    """
-    Select the most appropriate CBT technique based on the entire session.
-    Returns empty string if all messages are irrelevant (off-topic).
-    """
-    config = Config()
+# def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
+#     """
+#     Select the most appropriate CBT technique based on the entire session.
+#     Returns empty string if all messages are irrelevant (off-topic).
+#     """
+#     config = Config()
     
-    # Check if session has any relevant therapy content
+#     # Check if session has any relevant therapy content
+#     if not _is_session_relevant(chat_history):
+#         return ""
+    
+#     formatted_history = _format_chat_history(chat_history)
+    
+#     technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
+#         client_profile=client_profile,
+#         formatted_history=formatted_history,
+#         available_sub_techniques=config.CBT_SUB_TECHNIQUES
+#     )
+    
+#     bedrock_model = BedrockModel(
+#         model_id="mistral.mistral-large-2402-v1:0",
+#         region_name="ap-southeast-2",
+#         streaming=False,
+#     )
+    
+#     technique_agent = Agent(
+#         system_prompt='''You are a CBT supervisor expert in selecting appropriate 
+#         therapeutic interventions for ongoing treatment. Respond with ONLY the sub technique name.''',
+#         model=bedrock_model
+#     )
+    
+#     selected_technique = str(technique_agent(technique_prompt)).strip()
+    
+#     return selected_technique
+
+def _select_technique_for_all_sessions(
+    client_profile: Dict[str, Any], 
+    chat_history: List[Dict[str, Any]],
+    client_subtechniques: List[str]
+) -> str:
     if not _is_session_relevant(chat_history):
+        return ""
+    
+    if not client_subtechniques:
         return ""
     
     formatted_history = _format_chat_history(chat_history)
@@ -425,7 +517,7 @@ def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_hist
     technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
         client_profile=client_profile,
         formatted_history=formatted_history,
-        available_sub_techniques=config.CBT_SUB_TECHNIQUES
+        available_sub_techniques=client_subtechniques
     )
     
     bedrock_model = BedrockModel(
@@ -443,8 +535,6 @@ def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_hist
     selected_technique = str(technique_agent(technique_prompt)).strip()
     
     return selected_technique
-
-
 
 def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
     """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
@@ -480,25 +570,54 @@ def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
     return list(flags_results)
 
 
-def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
-    """Evaluate each CRITERION as True/False."""
-    config = Config()
+# def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
+#     """Evaluate each CRITERION as True/False."""
+#     config = Config()
+#     formatted_history = _format_chat_history(chat_history)
+#     bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2", streaming=False)
+#     rating_agent = Agent(
+#         system_prompt=f'''You are an evaluator of CBT counseling quality. 
+#         For each of the following criteria, output True if the chat meets it, otherwise False.
+#         Criteria: {', '.join(config.CRITERIONS)} 
+#         Respond strictly as a JSON dict with criterion: boolean.''',
+#         model=bedrock_model
+#     )
+#     prompt = PromptTemplates.session_ratings_prompt(formatted_history)
+#     response = str(rating_agent(prompt)).strip()
+#     try:
+#         return json.loads(response)
+#     except:
+#         return {c: False for c in config.CRITERIONS}
+
+def _evaluate_session_ratings(chat_history: List[Dict[str, Any]], criterions: List[str]) -> Dict[str, bool]:
+    """Evaluate each CRITERION as True/False based on provided criterions list."""
+    
+    if not criterions:
+        return {}
+    
     formatted_history = _format_chat_history(chat_history)
-    bedrock_model = BedrockModel(model_id="mistral.mistral-large-2402-v1:0", region_name="ap-southeast-2", streaming=False)
+    
+    bedrock_model = BedrockModel(
+        model_id="mistral.mistral-large-2402-v1:0", 
+        region_name="ap-southeast-2", 
+        streaming=False
+    )
+    
     rating_agent = Agent(
         system_prompt=f'''You are an evaluator of CBT counseling quality. 
         For each of the following criteria, output True if the chat meets it, otherwise False.
-        Criteria: {', '.join(config.CRITERIONS)} 
+        Criteria: {', '.join(criterions)} 
         Respond strictly as a JSON dict with criterion: boolean.''',
         model=bedrock_model
     )
+    
     prompt = PromptTemplates.session_ratings_prompt(formatted_history)
     response = str(rating_agent(prompt)).strip()
+    
     try:
         return json.loads(response)
     except:
-        return {c: False for c in config.CRITERIONS}
-
+        return {c: False for c in criterions}
 
 def _generate_agenda_topic(client_profile: Dict[str, Any], chat_history: List[Dict[str, Any]]) -> str:
     """Generate a concise agenda topic title for the conversation."""
