@@ -284,7 +284,12 @@ class PromptTemplates:
                 SESSION TRANSCRIPT:
                 {formatted_history}
 
-                Please write a concise **Session Overview** (3–4 sentences)"""
+
+            Please write a concise **Session Overview** (3–4 sentences) that objectively summarizes
+            the key themes and therapeutic focus discussed in this session.
+
+            Do NOT include personal opinions, judgments, or emotional evaluations.
+            Keep the tone factual and neutral."""
 
     @staticmethod
     def technique_selection_for_all_sessions_prompt(client_profile: Dict[str, Any], formatted_history: str, available_sub_techniques: List[str]) -> str:
@@ -360,6 +365,8 @@ class PromptTemplates:
                 - Treatment Goal: {client_profile.get('goal')}        
                 SESSION TRANSCRIPT:
                 {formatted_history}
-                Generate a short, meaningful agenda topic for next CBT session
 
-        """
+                Generate a short, specific, and neutral agenda topic for the next CBT session
+                based on the issues discussed, without adding any personal opinions or evaluations.
+                The topic should be concise and descriptive (not advisory or interpretive).        
+            """

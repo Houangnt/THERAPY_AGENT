@@ -2,6 +2,7 @@ from strands import Agent
 from strands_tools import retrieve
 
 agent = Agent(tools=[retrieve])
+import re
 
 # Advanced search with custom parameters
 # results = agent.tool.retrieve(
@@ -21,7 +22,7 @@ bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeas
 response = bedrock_runtime.retrieve(
     knowledgeBaseId='UHCCSWKNZF',
     retrievalQuery={
-        'text': 'I want to die'
+        'text': 'i have a gun'
     },
     retrievalConfiguration={
         'vectorSearchConfiguration': {
@@ -39,4 +40,6 @@ print(response["retrievalResults"][0]["score"])
 print("===============")
 print(response["retrievalResults"][0]["metadata"])
 print("===============")
-print(response["retrievalResults"][0]["metadata"]["flag"])
+flag_raw = response["retrievalResults"][0]["metadata"]["flag"]
+flag_clean = re.sub(r"^\s*\d+\s*[:\.]\s*", "", flag_raw)
+print(flag_clean)
