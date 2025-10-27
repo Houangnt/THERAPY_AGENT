@@ -353,12 +353,11 @@ def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, An
         )
         
         recommended_technique = _select_technique_for_all_sessions(
-            client_profile=client_profile,
             chat_history=chat_history,
             client_subtechniques=client_subtechniques
         )
 
-        flags_list = _detect_crisis_flags(chat_history)
+        # flags_list = _detect_crisis_flags(chat_history)
 
         ratings = _evaluate_session_ratings(chat_history, criterions)
 
@@ -370,7 +369,7 @@ def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, An
             "statusCode": 200,
             "body": json.dumps({
                 "ratings": ratings,
-                "flags": flags_list,
+                # "flags": flags_list,
                 "agendaTopic": agenda_topic,
                 "summary": summary_text,
                 "techniquesUsed": techniques_used
@@ -502,7 +501,6 @@ def _is_session_relevant(chat_history: List[Dict[str, Any]]) -> bool:
 #     return selected_technique
 
 def _select_technique_for_all_sessions(
-    client_profile: Dict[str, Any], 
     chat_history: List[Dict[str, Any]],
     client_subtechniques: List[str]
 ) -> str:
@@ -515,7 +513,6 @@ def _select_technique_for_all_sessions(
     formatted_history = _format_chat_history(chat_history)
     
     technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
-        client_profile=client_profile,
         formatted_history=formatted_history,
         available_sub_techniques=client_subtechniques
     )
@@ -527,8 +524,11 @@ def _select_technique_for_all_sessions(
     )
     
     technique_agent = Agent(
-        system_prompt='''You are a CBT supervisor expert in selecting appropriate 
-        therapeutic interventions for ongoing treatment. Respond with ONLY the sub technique name.''',
+        system_prompt=(
+            "You are a CBT supervisor analyzing the conversation transcript "
+            "to identify which specific CBT subtechnique was actually used by the therapist. "
+            "Do not propose new techniques. Respond with ONLY the exact subtechnique name or 'None'."
+        ),
         model=bedrock_model
     )
     
@@ -536,38 +536,38 @@ def _select_technique_for_all_sessions(
     
     return selected_technique
 
-def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
-    """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
-    flags_results = set()
-    bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeast-2")
+# def _detect_crisis_flags(chat_history: List[Dict[str, Any]]) -> List[str]:
+#     """Detect and classify crisis-related messages dynamically using CrisisHandlerAgent."""
+#     flags_results = set()
+#     bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeast-2")
  
-    for turn in chat_history:
-        if turn.get("role", "").lower() == "client":
-            message = turn.get("message", "").strip()
-            if not message:
-                continue
-            response = bedrock_runtime.retrieve(
-                knowledgeBaseId='UHCCSWKNZF',
-                retrievalQuery={
-                    'text': message
-                },
-                retrievalConfiguration={
-                    'vectorSearchConfiguration': {
-                        'numberOfResults': 1,
-                        'filter': {
-                            'equals': {
-                                'key': 'intervention_type',
-                                'value': "crisis"
-                            }
-                        }
-                    } 
-                }   
-            )
-            if response["retrievalResults"][0]["score"] >= 0.6:
-                flag_raw = response["retrievalResults"][0]["metadata"]["flag"]
-                flag_clean = re.sub(r"^\s*\d+\s*[:\.]\s*", "", flag_raw)
-                flags_results.add(flag_clean)
-    return list(flags_results)
+#     for turn in chat_history:
+#         if turn.get("role", "").lower() == "client":
+#             message = turn.get("message", "").strip()
+#             if not message:
+#                 continue
+#             response = bedrock_runtime.retrieve(
+#                 knowledgeBaseId='UHCCSWKNZF',
+#                 retrievalQuery={
+#                     'text': message
+#                 },
+#                 retrievalConfiguration={
+#                     'vectorSearchConfiguration': {
+#                         'numberOfResults': 1,
+#                         'filter': {
+#                             'equals': {
+#                                 'key': 'intervention_type',
+#                                 'value': "crisis"
+#                             }
+#                         }
+#                     } 
+#                 }   
+#             )
+#             if response["retrievalResults"][0]["score"] >= 0.6:
+#                 flag_raw = response["retrievalResults"][0]["metadata"]["flag"]
+#                 flag_clean = re.sub(r"^\s*\d+\s*[:\.]\s*", "", flag_raw)
+#                 flags_results.add(flag_clean)
+#     return list(flags_results)
 
 
 # def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:

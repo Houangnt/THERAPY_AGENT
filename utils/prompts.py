@@ -292,34 +292,41 @@ class PromptTemplates:
             Keep the tone factual and neutral."""
 
     @staticmethod
-    def technique_selection_for_all_sessions_prompt(client_profile: Dict[str, Any], formatted_history: str, available_sub_techniques: List[str]) -> str:
-            
-            techniques_list = "\n".join([f"- {technique}" for technique in available_sub_techniques])
-            
-            return f"""You are a CBT therapy supervisor selecting the optimal therapeutic technique for ALL future sessions based on the complete conversation history.
+    def technique_selection_for_all_sessions_prompt(
+        formatted_history: str,
+        available_sub_techniques: List[Dict[str, str]]
+    ) -> str:
+        subtechniques_list = "\n".join([
+            f"- **{tech['name']}**: {tech['description']}"
+            for tech in available_sub_techniques
+        ])
 
-            CLIENT PROFILE:
-            - Age: {client_profile.get('age')}
-            - Gender: {client_profile.get('gender')}
-            - Current Mood: {client_profile.get('mood')}
-            - Diagnosis: {client_profile.get('diagnosis')}
-            - History: {client_profile.get('history')}
-            - Reason for Counseling: {client_profile.get('reason_for_counseling')}
-            - Treatment Goal: {client_profile.get('goal')}
+        subtechnique_names = "\n".join([
+            f"- {tech['name']}"
+            for tech in available_sub_techniques
+        ])
 
-            COMPLETE SESSION TRANSCRIPT:
-            {formatted_history}
+        return f"""You are a CBT therapy supervisor reviewing the complete conversation history 
+                to identify which specific CBT subtechnique(s) were actually used by the therapist.
 
-            AVAILABLE THERAPEUTIC TECHNIQUES:
-            {techniques_list}
+                COMPLETE SESSION TRANSCRIPT:
+                {formatted_history}
 
-            IMPORTANT: 
-            - Respond with ONLY the technique name exactly as listed above
-            - Choose ONE technique that best serves the ongoing treatment
-            - Consider the big picture: this technique will guide multiple future sessions
-            - Think long-term: explore → understand → normalize → educate → intervene
+                AVAILABLE SUBTECHNIQUES:
+                {subtechnique_names}
 
-            Your response (technique name only):"""
+                SUBTECHNIQUE DESCRIPTIONS:
+                {subtechniques_list}
+
+                IMPORTANT:
+                - Identify which **one subtechnique** from the list above was **actually used** by the therapist 
+                in the conversation (based on wording, interventions, or guided exercises).
+                - Choose the subtechnique name **exactly as listed above**.
+                - If **none of these subtechniques** appear to have been used, respond with **"None"**.
+                - Do **not** propose or suggest new subtechniques — only recognize the one already demonstrated in the transcript.
+
+                Your final response (technique name only, or "None")"""
+
 
     @staticmethod
     def crisis_flag_prompt(message: str) -> str:
