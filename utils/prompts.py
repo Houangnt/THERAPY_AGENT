@@ -313,13 +313,6 @@ class PromptTemplates:
             AVAILABLE THERAPEUTIC TECHNIQUES:
             {techniques_list}
 
-            SUBTECHNIQUE DESCRIPTIONS:
-            - **Mindfulness Technique 1: The STOP Practice**:
-            - **Mindfulness Technique 2: Five Senses Check-in**:
-            - **Mindfulness Technique 3: Mindful Breathing**: 
-            - **Mindfulness Technique 4: Urge Surfing**: 
-            - **Mindfulness Technique 5: Defusion Techniques**: 
-
             IMPORTANT: 
             - Respond with ONLY the technique name exactly as listed above
             - Choose ONE technique that best serves the ongoing treatment
