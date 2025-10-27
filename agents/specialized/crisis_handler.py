@@ -1,9 +1,12 @@
+import re
+import json
 from typing import Optional
 from agents.base import BaseAgent
 from utils.prompts import PromptTemplates
 from strands.models import BedrockModel
 from strands import Agent, tool
 from strands_tools import retrieve
+import boto3
 
 class CrisisHandlerAgent(BaseAgent):
 
@@ -19,42 +22,67 @@ class CrisisHandlerAgent(BaseAgent):
         )
 
     def execute(self, message: str) -> str:
-        agent = Agent(tools=[retrieve])
+        """Detect crisis intent and generate emergency response if needed.
+        """
+        bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeast-2")
+
+        flags = ""
+        response = ""
+
         try:
-            kb_results = agent.tool.retrieve(
-                text=message,
-                numberOfResults=1,
-                score=0.7,
-                knowledgeBaseId="UHCCSWKNZF",  
-                region="ap-southeast-2",
-                retrieveFilter={"startsWith": {"key": "approach", "value": "CRISIS"}}
+            kb_results = bedrock_runtime.retrieve(
+                knowledgeBaseId='UHCCSWKNZF',
+                retrievalQuery={'text': message},
+                retrievalConfiguration={
+                    'vectorSearchConfiguration': {
+                        'numberOfResults': 1,
+                        'filter': {
+                            'equals': {
+                                'key': 'intervention_type',
+                                'value': "crisis"
+                            }
+                        }
+                    }
+                }
             )
-            if kb_results and "content" in kb_results:
-                raw_text = kb_results["content"][0].get("text", "")
-                if "Content:" in raw_text:
-                    kb_text = raw_text.split("Content:", 1)[1].strip()
-                else:
-                    kb_text = raw_text
-                kb_text = kb_text.replace("\n", " ")
+            retrievals = kb_results.get("retrievalResults", [])
+            if not retrievals:
+                return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)
+
+            result = retrievals[0]
+            kb_text = result["content"]["text"]
+            kb_score = result.get("score", 0.0)
+            print(f"Retrieved KB text with score: {kb_score}")
+
+            if kb_score <= 0.2 or not kb_text.strip():
+                return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)
+            if kb_score < 0.5 and kb_score > 0.2 or not kb_text.strip():
+                prompt_crisis_fallback = PromptTemplates.crisis_detect()
+                crisis_agent_fallback = Agent(system_prompt=prompt_crisis_fallback, model=self.model, tools=[])
+                crisis_response_fallback = str(crisis_agent_fallback(message)).strip()
+                if not crisis_response_fallback:
+                    return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)                    
+                
+            prompt_intent = PromptTemplates.intent_extraction_prompt(message, kb_text)
+            intent_agent = Agent(system_prompt=prompt_intent, model=self.model, tools=[])
+            intent_response = str(intent_agent(message)).strip()
+            intent_response = re.sub(r'[^a-zA-Z0-9,\s]', '', intent_response)
+
+            prompt_crisis = PromptTemplates.crisis_handler_prompt()
+            crisis_agent = Agent(system_prompt=prompt_crisis, model=self.model, tools=[])
+            crisis_response = str(crisis_agent(message)).strip()
+
+            if intent_response:
+                flags = intent_response
             else:
-                kb_text = ""
+                # fallback: KB indicates crisis, but extractor couldn't produce phrases
+                flags = message
+
+            response = crisis_response
+
         except Exception as e:
-            kb_text = f"Error retrieving KB info: {str(e)}"
+            print(f"[ERROR] CrisisHandlerAgent failed: {str(e)}")
+            flags = ""
+            response = ""
 
-        print(f"[DEBUG] input text querying (crisis): {message}")
-        print(f"[DEBUG] RAG content for crisis_handler: '{kb_text}'")
-
-        prompt = PromptTemplates.crisis_handler_prompt()
-        if kb_text:
-            prompt += f"\n\nAdditional guidance from knowledge base:\n{kb_text}\n"
-
-        crisis_agent = Agent(system_prompt=prompt, tools=[], model=self.model)
-        response = str(crisis_agent(message)).strip()
-
-        if not response:
-            return "NO_CRISIS"
-
-        if response.startswith("CRISIS_DETECTED"):
-            return response
-
-        return "NO_CRISIS"
+        return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)

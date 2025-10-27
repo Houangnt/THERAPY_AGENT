@@ -22,7 +22,8 @@ class RelevanceValidationAgent(Agent):
         Returns "RELEVANT" or a deflection message.
         """
         response = str(self(user_input))
-        
+        print("[DEBUG] RELEVANT RELEVANT")
+
         if "RELEVANT" in response:
             return "RELEVANT"
         else:

@@ -36,7 +36,6 @@ def normalizing_agent(client_info: str, reason: str, history: str) -> str:
     # print(f"[DEBUG] input text querying: {latest_client_turn}")
     # print(f"[DEBUG] RAG content for normalizing_agent: '{kb_text}'")
     prompt = PromptTemplates.normalizing_prompt(client_info, reason, history)
-    
     try:
         bedrock_model = BedrockModel(
             model_id="mistral.mistral-large-2402-v1:0",

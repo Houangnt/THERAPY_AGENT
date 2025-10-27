@@ -10,9 +10,8 @@ class PromptTemplates:
 
         return (
             "You are a crisis response agent**.\n"
-            "Your task is to analyze the user's message and determine if it indicates a **crisis situation**, if so, immediately provide relevant emergency contacts\n\n"
             
-            "FOLLOW THESE RULES (STRICT):\n"
+            "ALWAYS FOLLOW OUTPUT RULES (STRICT):\n"
             "1. Response must be 3-4 very short sentences only. Use urgent/directive tone.\n"
             "2. **NEVER attempt therapy or advice or provide CBT techniques to resolve the issue**.\n"
             "3. State clearly that you are an AI co-therapist and **cannot provide crisis support**.\n"
@@ -28,23 +27,49 @@ class PromptTemplates:
             "       + Professional misconduct: AHPRA (1300 419 495).\n"
             "5. Direct the client to **contact a therapist or emergency services**.\n"
             "6. Use **urgent, directive language** prioritizing safety.\n\n"
+        )
+    @staticmethod
+    def intent_extraction_prompt(user_text: str, kb_text: str) -> str:
+        return f"""
+            You are an intent analysis assistant for a CBT crisis detection system.
 
+            Your task:
+            - Identify and extract **only the sentences or phrases** in the user's input that have similar intent, topic, or risk level to the RAG knowledge base text.
+            - Focus on **suicidal ideation**, **self-harm**, **violence**, or **high emotional distress**.
+            - Keep **all original characters** (including punctuation or special symbols) from the user's text.
+            - Do **not** rewrite, summarize, or explain anything.
+            - Output strictly as a **comma-separated list** of phrases that match the risky intent.
+
+            USER INPUT:
+            {user_text}
+
+            RAG KNOWLEDGE BASE TEXT:
+            {kb_text}
+
+            STRICT OUTPUT FORMAT:
+            <phrase_1>, <phrase_2>, ...
+            """
+    @staticmethod
+    def crisis_detect() -> str:
+
+        return (
+            "You are a **crisis detection and response agent**.\n"
+            "Your task is to analyze the user's message and determine if it indicates a **crisis situation**, if so, immediately provide relevant emergency contacts\n\n"
+            "A **crisis** includes: SUICIDAL IDEATION, SELF-HARM, SEXUAL ASSAULT AND ABUSE, SUBSTANCE ABUSE CRISIS, DOMESTIC VIOLENCE AND ABUSE, HARM TO CHILDREN, HARM TO ELDER, SEVERE MENTAL HEALTH EPISODES, MEDICAL EMERGENCIES RELATED TO MENTAL HEALTH, WORKPLACE VIOLENCE AND HARASSMENT, STALKING AND HARASSMENT\n"
             "**Output format:**\n"
             "CRISIS_DETECTED\n"
-            "<empathetic response>\n\n"
             "If not a crisis, reply only with:\n"
             "NO_CRISIS"
         )
-
     # ========= RELEVANCE CHECK =========
     @staticmethod
     def relevance_check_prompt():
         return (
-            "You are a relevance validation assistant for a therapy chatbot.\n"
-            "Your task is to determine if the user's message is related to **mental health, emotions, therapy, or counseling**.\n\n"
+            "You are a relevance validation assistant for a therapy chatbot and your client live in AUSTRALIA.\n"
+            "Your task is to determine if the user's message is related to **mental health, crisis situation, emegency, emotions, therapy, or counseling**.\n\n"
             
             "**IMPORTANT OUTPUT FORMAT:**\n"
-            "- If the message IS relevant to therapy/mental health → Reply ONLY with the word:\n"
+            "- If the message IS relevant to therapy/mental health or crisis situation → Reply ONLY with the word:\n"
             "  RELEVANT\n\n"
             
             "- If the message is NOT relevant → Reply with a SHORT, firm reminder (2-3 sentences max) that redirects to therapy topics.\n"
@@ -84,7 +109,7 @@ class PromptTemplates:
                     Reflection is a technique used by the counselor to help a client gain insight into their thoughts, feelings, and behaviors by mirroring or paraphrasing what the client expresses, allowing the client to hear and evaluate their own statements more clearly. 
                     Your task is to use the provided client information to generate the next reflection-based counselor utterance in the dialogue. 
                     The goal is to create a natural and engaging response that builds on the previous conversation through reflection. Please be mindful to only generate the counselor response for a single turn and do not include extra text or anything mentioning the used technique. Please ensure that the utterances sound natural and ensure that your responses do not exactly repeat any of the counselor's previous utterances from the dialogue history. 
-                    Information of the client:
+                    Information of the client (your client always live in AUSTRALIA):
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client:
                     Client Info: {client_info}
@@ -106,7 +131,7 @@ class PromptTemplates:
                     ensure that your responses do not exactly repeat any of the counselor's previous utterances
                     from the dialogue history.
                     {PromptTemplates._natural_variation_guidelines()}
-                    Information of the client:
+                    Information of the client (your client always live in AUSTRALIA)
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Conversation History: {history}
@@ -123,7 +148,7 @@ class PromptTemplates:
                     a single turn and do not include extra text or anything mentioning the used technique. 
                     Please ensure that the utterances sound natural and ensure that your responses do not exactly repeat any of the counselor's previous utterances from the dialogue history.
                     {PromptTemplates._natural_variation_guidelines()}
-                    Information of the client:
+                    Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
@@ -144,7 +169,7 @@ class PromptTemplates:
                     history
 
                     {PromptTemplates._natural_variation_guidelines()}
-                    Information of the client:
+                    Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
@@ -164,7 +189,7 @@ class PromptTemplates:
                     repeat any of the counselor's previous utterances from the dialogue history.
 
                     {PromptTemplates._natural_variation_guidelines()}
-                    Information of the client:
+                    Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
@@ -264,7 +289,8 @@ class PromptTemplates:
         - Maintain therapeutic accuracy and empathy.
         - Ensure the message fits naturally into the ongoing conversation.
         - Do NOT generate multiple perspectives, only improve or finalize the given one.
-        
+        - ALWAYS answer in 3-5 sentences.
+        - GUIDE the client to pratice suitable CBT technique if necessary
         Return only the final counselor response."""
     # ========= SESSION SUMMARY =========
     @staticmethod
