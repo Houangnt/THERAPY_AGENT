@@ -292,41 +292,31 @@ class PromptTemplates:
             Keep the tone factual and neutral."""
 
     @staticmethod
-    def technique_selection_for_all_sessions_prompt(client_profile: Dict[str, Any], formatted_history: str, available_sub_techniques: List[str]) -> str:
-            
-            techniques_list = "\n".join([f"- {technique}" for technique in available_sub_techniques])
-            
-            return f"""You are a CBT therapy supervisor selecting the optimal therapeutic technique for ALL future sessions based on the complete conversation history.
+    def technique_selection_for_all_sessions_prompt(formatted_history: str, available_sub_techniques: List[str]) -> str:
+        
+        subtechniques_list = "\n".join([f"- {technique}" for technique in available_sub_techniques])
+        
+        return f"""You are a CBT therapy supervisor reviewing the complete conversation history to identify which specific CBT subtechnique(s) were actually used by the therapist.
 
-            CLIENT PROFILE:
-            - Age: {client_profile.get('age')}
-            - Gender: {client_profile.get('gender')}
-            - Current Mood: {client_profile.get('mood')}
-            - Diagnosis: {client_profile.get('diagnosis')}
-            - History: {client_profile.get('history')}
-            - Reason for Counseling: {client_profile.get('reason_for_counseling')}
-            - Treatment Goal: {client_profile.get('goal')}
+        COMPLETE SESSION TRANSCRIPT:
+        {formatted_history}
 
-            COMPLETE SESSION TRANSCRIPT:
-            {formatted_history}
+        AVAILABLE SUBTECHNIQUES:
+        {subtechniques_list}
 
-            AVAILABLE THERAPEUTIC TECHNIQUES:
-            {techniques_list}
+        SUBTECHNIQUE DESCRIPTIONS:
+        - **Mindfulness Technique 1: Five Senses Check-in**: This grounding technique uses sensory awareness to anchor clients in the present moment.
+        - **Mindfulness Technique 2: Mindful Breathing**: This involves focusing attention on the breath to cultivate present-moment awareness and calm the mind.
+        - **Mindfulness Technique 3: Urge Surfing**: This helps clients ride out strong emotional or behavioural urges without acting on them, increasing distress tolerance and emotional regulation.
 
-            SUBTECHNIQUE DESCRIPTIONS:
-            - **Mindfulness Technique 1: The STOP Practice**:
-            - **Mindfulness Technique 2: Five Senses Check-in**:
-            - **Mindfulness Technique 3: Mindful Breathing**: 
-            - **Mindfulness Technique 4: Urge Surfing**: 
-            - **Mindfulness Technique 5: Defusion Techniques**: 
+        IMPORTANT:
+        - Identify which **one subtechnique** from the list above was **actually used** by the therapist in the conversation (based on wording, interventions, or guided exercises).
+        - Choose the subtechnique name **exactly as listed above**.
+        - If **none of these subtechniques** appear to have been used, respond with **"None"**.
+        - Do **not** propose or suggest new subtechniques — only recognize the one already demonstrated in the transcript.
 
-            IMPORTANT: 
-            - Respond with ONLY the technique name exactly as listed above
-            - Choose ONE technique that best serves the ongoing treatment
-            - Consider the big picture: this technique will guide multiple future sessions
-            - Think long-term: explore → understand → normalize → educate → intervene
+        Your final response (technique name only, or "None")"""
 
-            Your response (technique name only):"""
 
     @staticmethod
     def crisis_flag_prompt(message: str) -> str:

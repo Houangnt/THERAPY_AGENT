@@ -423,7 +423,6 @@ def _select_technique_for_all_sessions(client_profile: Dict[str, Any], chat_hist
     formatted_history = _format_chat_history(chat_history)
     
     technique_prompt = PromptTemplates.technique_selection_for_all_sessions_prompt(
-        client_profile=client_profile,
         formatted_history=formatted_history,
         available_sub_techniques=config.CBT_SUB_TECHNIQUES
     )
