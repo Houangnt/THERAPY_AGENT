@@ -336,7 +336,7 @@ def session_summary_handler(event: Dict[str, Any], context: Any) -> Dict[str, An
         body = json.loads(event.get("body", "{}"))
         client_profile = body.get("client_profile")
         chat_history = body.get("chat_history", [])
-        client_subtechniques = body.get("client_techniques", [])  # ← Nhận từ frontend
+        client_subtechniques = body.get("client_techniques", [])
         criterions = body.get("criterions", [])
 
         if not client_profile or not chat_history:
