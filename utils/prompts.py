@@ -29,6 +29,26 @@ class PromptTemplates:
             "6. Use **urgent, directive language** prioritizing safety.\n\n"
         )
     @staticmethod
+    # def intent_extraction_prompt(user_text: str, kb_text: str) -> str:
+    #     return f"""
+    #         You are an intent analysis assistant for a CBT crisis detection system.
+
+    #         Your task:
+    #         - Identify and extract **only the sentences or phrases** in the user's input that have similar intent, topic, or risk level to the RAG knowledge base text.
+    #         - Focus on **suicidal ideation**, **self-harm**, **violence**, or **high emotional distress**.
+    #         - Keep **all original characters** (including punctuation or special symbols) from the user's text.
+    #         - Do **not** rewrite, summarize, or explain anything.
+    #         - Output strictly as a **comma-separated list** of phrases that match the risky intent.
+
+    #         USER INPUT:
+    #         {user_text}
+
+    #         RAG KNOWLEDGE BASE TEXT:
+    #         {kb_text}
+
+    #         STRICT OUTPUT FORMAT:
+    #         <phrase_1>, <phrase_2>, ...
+    #         """
     def intent_extraction_prompt(user_text: str, kb_text: str) -> str:
         return f"""
             You are an intent analysis assistant for a CBT crisis detection system.
@@ -40,6 +60,10 @@ class PromptTemplates:
             - Do **not** rewrite, summarize, or explain anything.
             - Output strictly as a **comma-separated list** of phrases that match the risky intent.
 
+            If **no phrase or sentence** in the user's input matches the risky intent, 
+            then **return the full original user input**, 
+            but **remove all commas (',')** from it before output.
+
             USER INPUT:
             {user_text}
 
@@ -48,19 +72,60 @@ class PromptTemplates:
 
             STRICT OUTPUT FORMAT:
             <phrase_1>, <phrase_2>, ...
+            If no match found → output the cleaned user input without commas.
             """
     @staticmethod
-    def crisis_detect() -> str:
+    def rag_cbt_concept_prompt(user_input: str) -> str:
+        return f"""
+            You are an expert Cognitive Behavioral Therapy (CBT) analyst.
 
+            Your task:
+            - Analyze the client's message and identify the **main CBT-relevant topics, concepts, or techniques** that are related to it.
+            - Then, generate **3 short, academic-style query sentences** (each under 12 words) that could be used to search a CBT textbook or knowledge base.
+            - Each sentence should represent **a distinct concept or intervention**, not conversational phrasing.
+            - Focus on CBT terms such as: cognitive distortions, automatic thoughts, core beliefs, behavioral activation, emotion regulation, avoidance, etc.
+            - Output should be in plain text, numbered 1–3.
+            - Do NOT paraphrase the user’s sentence conversationally — focus on **concept extraction and technique relevance**.
+            - Return output as valid JSON with this structure:
+            {{
+                "queries": [
+                    "query 1",
+                    "query 2",
+                    "query 3",
+                ]
+            }}
+            User message:
+            "{user_input}"
+
+            Now produce 5 short CBT-relevant conceptual queries.
+            """        
+    @staticmethod
+    def crisis_detect() -> str:
         return (
-            "You are a **crisis detection and response agent**.\n"
-            "Your task is to analyze the user's message and determine if it indicates a **crisis situation**, if so, immediately provide relevant emergency contacts\n\n"
-            "A **crisis** includes: SUICIDAL IDEATION, SELF-HARM, SEXUAL ASSAULT AND ABUSE, SUBSTANCE ABUSE CRISIS, DOMESTIC VIOLENCE AND ABUSE, HARM TO CHILDREN, HARM TO ELDER, SEVERE MENTAL HEALTH EPISODES, MEDICAL EMERGENCIES RELATED TO MENTAL HEALTH, WORKPLACE VIOLENCE AND HARASSMENT, STALKING AND HARASSMENT\n"
+            "You are a **crisis detection and response agent** trained to identify true emergencies related to mental health or safety.\n\n"
+            "Your goal is to analyze the user's message and determine whether it indicates an **immediate or high-risk crisis** situation.\n\n"
+            "A **crisis** includes any clear or implied reference to:\n"
+            "- **Suicidal ideation or self-harm** (e.g., wanting to die, planning to hurt oneself)\n"
+            "- **Violence toward others** (e.g., intent or threat to harm someone)\n"
+            "- **Abuse or assault** (sexual, physical, emotional, domestic, or workplace violence)\n"
+            "- **Severe mental health breakdown** (e.g., psychosis, losing control, severe panic attack, mental collapse)\n"
+            "- **Medical emergencies related to mental health** (e.g., overdose, unconsciousness, self-poisoning)\n"
+            "- **Severe neglect or danger** (e.g., harm to children, elders, or vulnerable persons)\n\n"
+            "**Do NOT treat mild distress, sadness, anxiety, or insomnia as crisis** unless there is clear danger to self or others.\n"
+            "Examples of **non-crisis** situations: feeling stressed, having insomnia for a few days, general sadness, relationship conflicts without danger.\n\n"
             "**Output format:**\n"
-            "CRISIS_DETECTED\n"
-            "If not a crisis, reply only with:\n"
-            "NO_CRISIS"
+            "- If the input clearly indicates a crisis → respond exactly with: `CRISIS_DETECTED`\n"
+            "- If there is no clear or imminent danger → respond exactly with: `NO_CRISIS`"
         )
+        # return (
+        #     "You are a **crisis detection and response agent**.\n"
+        #     "Your task is to analyze the user's message and determine if it indicates a **crisis situation**, if so, immediately provide relevant emergency contacts\n\n"
+        #     "A **crisis** includes: SUICIDAL IDEATION, SELF-HARM, SEXUAL ASSAULT AND ABUSE, SUBSTANCE ABUSE CRISIS, DOMESTIC VIOLENCE AND ABUSE, HARM TO CHILDREN, HARM TO ELDER, SEVERE MENTAL HEALTH EPISODES, MEDICAL EMERGENCIES RELATED TO MENTAL HEALTH, WORKPLACE VIOLENCE AND HARASSMENT, STALKING AND HARASSMENT\n"
+        #     "**Output format:**\n"
+        #     "CRISIS_DETECTED\n"
+        #     "If not a crisis, reply only with:\n"
+        #     "NO_CRISIS"
+        # )
     # ========= RELEVANCE CHECK =========
     @staticmethod
     def relevance_check_prompt():
@@ -97,6 +162,9 @@ class PromptTemplates:
         return (
             "When generating responses:\n"
             "- Avoid repeating common openings like 'I understand that...' or 'It’s normal to feel...'.\n"
+            "- Ensure the message fits naturally into the ongoing conversation."
+            "- ALWAYS answer in 3-5 sentences."
+            "- GUIDE the client to pratice suitable CBT technique if necessary"
             "- Use diverse empathetic phrases such as:\n"
             "  'That sounds really tough.', 'It makes sense you’d feel that way.', "
             "'I can see how this situation might be overwhelming.', or 'It seems this has been weighing on you.'\n"
@@ -104,21 +172,26 @@ class PromptTemplates:
         )
 
     @staticmethod
-    def reflection_prompt(client_info: str, reason: str, history: str) -> str:
+    def reflection_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in reflections. 
                     Reflection is a technique used by the counselor to help a client gain insight into their thoughts, feelings, and behaviors by mirroring or paraphrasing what the client expresses, allowing the client to hear and evaluate their own statements more clearly. 
                     Your task is to use the provided client information to generate the next reflection-based counselor utterance in the dialogue. 
                     The goal is to create a natural and engaging response that builds on the previous conversation through reflection. Please be mindful to only generate the counselor response for a single turn and do not include extra text or anything mentioning the used technique. Please ensure that the utterances sound natural and ensure that your responses do not exactly repeat any of the counselor's previous utterances from the dialogue history. 
+                    NOTE: Sometimes the client might say something **irrelevant, meaningless, or off-topic** (e.g., random numbers, unrelated topics like cryptocurrency, jokes, or nonsense words,...) 
+                    In those cases:
+                    - Do **not** attempt to reflect or interpret the irrelevant content.
+                    - Respond politely that you only provide support in psychological and emotional wellbeing domains, and gently redirect the conversation back to the current counseling topic.
                     Information of the client (your client always live in AUSTRALIA):
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client:
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Conversation History: {history}
+                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def questioning_prompt(client_info: str, reason: str, history: str) -> str:
+    def questioning_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     questioning. Questioning is a technique used by counselors to gain deeper understanding and
                     insights on how the client feels regarding some previously mentioned events, how the client
@@ -130,15 +203,20 @@ class PromptTemplates:
                     text or anything mentioning the used technique. Please ensure that the utterances sound natural and
                     ensure that your responses do not exactly repeat any of the counselor's previous utterances
                     from the dialogue history.
+                    NOTE: Sometimes the client might say something **irrelevant, meaningless, or off-topic** (e.g., random numbers, unrelated topics like cryptocurrency, jokes, or nonsense words,...) 
+                    In those cases:
+                    - Do **not** attempt to reflect or interpret the irrelevant content.
+                    - Respond politely that you only provide support in psychological and emotional wellbeing domains, and gently redirect the conversation back to the current counseling topic.
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client (your client always live in AUSTRALIA)
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Conversation History: {history}
+                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def solution_prompt(client_info: str, reason: str, history: str) -> str:
+    def solution_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     providing solutions. Solution is a technique used by counselors to offer actionable psychological
                     techniques grounded in evidence-based practices that clients can use to improve their condition.
@@ -147,15 +225,20 @@ class PromptTemplates:
                     previous conversation through solution. Please be mindful to only generate the counselor response for
                     a single turn and do not include extra text or anything mentioning the used technique. 
                     Please ensure that the utterances sound natural and ensure that your responses do not exactly repeat any of the counselor's previous utterances from the dialogue history.
+                    NOTE: Sometimes the client might say something **irrelevant, meaningless, or off-topic** (e.g., random numbers, unrelated topics like cryptocurrency, jokes, or nonsense words,...) 
+                    In those cases:
+                    - Do **not** attempt to reflect or interpret the irrelevant content.
+                    - Respond politely that you only provide support in psychological and emotional wellbeing domains, and gently redirect the conversation back to the current counseling topic.
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
+                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def normalizing_prompt(client_info: str, reason: str, history: str) -> str:
+    def normalizing_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     normalization. Normalization is a technique used by the counselor to acknowledge and
                     validate the client's experience as normal or expectable, sympathize with their challenges,
@@ -166,17 +249,21 @@ class PromptTemplates:
                     generate the counselor response for a single turn and do not include extra or anything mentioning
                     the used technique. Please ensure that the utterances sound natural and ensure that your
                     responses do not exactly repeat any of the counselor's previous utterances from the dialogue
-                    history
-
+                    history.
+                    NOTE: Sometimes the client might say something **irrelevant, meaningless, or off-topic** (e.g., random numbers, unrelated topics like cryptocurrency, jokes, or nonsense words,...) 
+                    In those cases:
+                    - Do **not** attempt to reflect or interpret the irrelevant content.
+                    - Respond politely that you only provide support in psychological and emotional wellbeing domains, and gently redirect the conversation back to the current counseling topic.
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
+                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     @staticmethod
-    def psychoeducation_prompt(client_info: str, reason: str, history: str) -> str:
+    def psychoeducation_prompt(client_info: str, reason: str, history: str, kb_text: str = "") -> str:
         return f"""You are playing the role of a counselor in a psychological counseling session specializing in
                     psycho-education. Psycho-education is a technique used by the counselor to provide
                     therapeutically relevant information about psychological principles to the client to help them
@@ -187,12 +274,16 @@ class PromptTemplates:
                     response for a single turn and do not include extra text or anything mentioning the used technique.
                     Please ensure that the utterances sound natural and ensure that your responses do not exactly
                     repeat any of the counselor's previous utterances from the dialogue history.
-
+                    NOTE: Sometimes the client might say something **irrelevant, meaningless, or off-topic** (e.g., random numbers, unrelated topics like cryptocurrency, jokes, or nonsense words,...) 
+                    In those cases:
+                    - Do **not** attempt to reflect or interpret the irrelevant content.
+                    - Respond politely that you only provide support in psychological and emotional wellbeing domains, and gently redirect the conversation back to the current counseling topic.
                     {PromptTemplates._natural_variation_guidelines()}
                     Information of the client (your client always live in AUSTRALIA):
                     Client Info: {client_info}
                     Reason for counseling: {reason}
                     Dialogue History: {history}
+                    If possible, use the following guideline from the knowledge base to respond to the client: knowledge base: {kb_text}
                     """
 
     # ========= PLANNING / SYNTHESIS =========
@@ -210,7 +301,7 @@ class PromptTemplates:
         """
 
     @staticmethod
-    def technique_selection_prompt(cbt_plan: str, history: str, 
+    def technique_selection_prompt(history: str, 
                                    techniques: str) -> str:
         return f"""You are a counselor selecting psychological techniques. Based on 
         the counseling plan and dialogue context, suggest the appropriate technique(s) for 
@@ -219,7 +310,6 @@ class PromptTemplates:
         Remember the therapeutic flow: properly explore and understand client issues → 
         normalize the issues → provide solutions with psycho-education.
 
-        Counseling Planning: {cbt_plan}
         Counseling Dialogue: {history}
 
         Available Techniques:

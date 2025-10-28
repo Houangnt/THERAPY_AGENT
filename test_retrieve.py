@@ -22,7 +22,7 @@ bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeas
 response = bedrock_runtime.retrieve(
     knowledgeBaseId='UHCCSWKNZF',
     retrievalQuery={
-        'text': 'i have a gun'
+        'text': 'goodbye'
     },
     retrievalConfiguration={
         'vectorSearchConfiguration': {
@@ -36,6 +36,7 @@ response = bedrock_runtime.retrieve(
         } 
     }   
 )
+print(response["retrievalResults"][0])
 print(response["retrievalResults"][0]["score"])
 print("===============")
 print(response["retrievalResults"][0]["metadata"])

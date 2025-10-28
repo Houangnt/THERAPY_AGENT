@@ -19,7 +19,7 @@ class TechniqueSelectorAgent(BaseAgent):
             tools=[]
         )
     
-    def select_techniques(self, cbt_plan: str, history: str) -> List[Dict[str, float]]:
+    def select_techniques(self, history: str) -> List[Dict[str, float]]:
         """
         Dynamically select appropriate therapeutic techniques for current turn with confidence scores.
         Returns:
@@ -28,7 +28,6 @@ class TechniqueSelectorAgent(BaseAgent):
         techniques_str = "\n".join(f"- {t}" for t in self.config.THERAPY_AGENTS)
         
         prompt = PromptTemplates.technique_selection_prompt(
-            cbt_plan,
             history,
             techniques_str
         )
@@ -85,13 +84,13 @@ class TechniqueSelectorAgent(BaseAgent):
         print(f"[DEBUG] Parsed techniques with scores: {valid}")
         return valid
 
-    def execute(self, cbt_plan: str, history: str) -> Dict[str, float]:
+    def execute(self, history: str) -> Dict[str, float]:
         """
         Execute the technique selection and return only the best one.
         Returns:
             Dict {"technique": str, "score": float}
         """
-        techniques = self.select_techniques(cbt_plan, history)
+        techniques = self.select_techniques(history)
         best = max(techniques, key=lambda x: x["score"])
         print(f"[DEBUG] Selected technique: {best['technique']} (score={best['score']})")
         return best

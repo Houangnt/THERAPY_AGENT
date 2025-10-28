@@ -67,7 +67,7 @@ class CrisisHandlerAgent(BaseAgent):
             intent_agent = Agent(system_prompt=prompt_intent, model=self.model, tools=[])
             intent_response = str(intent_agent(message)).strip()
             intent_response = re.sub(r'[^a-zA-Z0-9,\s]', '', intent_response)
-
+            print("[DEBUG intent] ", intent_response)
             prompt_crisis = PromptTemplates.crisis_handler_prompt()
             crisis_agent = Agent(system_prompt=prompt_crisis, model=self.model, tools=[])
             crisis_response = str(crisis_agent(message)).strip()

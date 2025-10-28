@@ -44,7 +44,7 @@ def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> 
     history_str = session.get_history_string(max_messages=config.MAX_HISTORY_LENGTH)
     
     technique_selector = TechniqueSelectorAgent()
-    best = technique_selector.execute(session.cbt_plan, history_str)
+    best = technique_selector.execute(history_str)
     selected_technique = best["technique"]
     selected_score = best["score"]
     session.selected_techniques = [selected_technique]
@@ -62,16 +62,16 @@ def _process_turn(session: CounselingSession, client_profile: ClientProfile) -> 
 
     agent_func = techniques_map[selected_technique]
     agent_response = agent_func(client_info, reason, history_str)
-    synthesis_prompt = PromptTemplates.synthesis_prompt(
-        selected_agent=selected_technique,
-        agent_response=agent_response,
-        techniques=[selected_technique]
-    )
-    orchestrator = _get_orchestrator()
-    final_response = str(orchestrator(synthesis_prompt))
+    # synthesis_prompt = PromptTemplates.synthesis_prompt(
+    #     selected_agent=selected_technique,
+    #     agent_response=agent_response,
+    #     techniques=[selected_technique]
+    # )
+    # orchestrator = _get_orchestrator()
+    # final_response = str(orchestrator(synthesis_prompt))
 
-    session.add_message("Counselor", final_response)
-    return final_response
+    session.add_message("Counselor", agent_response)
+    return agent_response
 
 
 def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -108,53 +108,53 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
         }
 
     # Check relevance AFTER crisis check
-    relevance_validator = RelevanceValidationAgent()
-    relevance_response = relevance_validator.execute(initial_client_message)
+    # relevance_validator = RelevanceValidationAgent()
+    # relevance_response = relevance_validator.execute(initial_client_message)
     
-    if relevance_response != "RELEVANT":
-        session = CounselingSession()
-        session.add_message("Client", initial_client_message)
-        session.add_message("Counselor", relevance_response)
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "initial_response": relevance_response,
-                "session_state": session.to_dict(),
-                "crisis_detected": False
-            })
-        }
+    # if relevance_response != "RELEVANT":
+    #     session = CounselingSession()
+    #     session.add_message("Client", initial_client_message)
+    #     session.add_message("Counselor", relevance_response)
+    #     return {
+    #         "statusCode": 200,
+    #         "body": json.dumps({
+    #             "initial_response": relevance_response,
+    #             "session_state": session.to_dict(),
+    #             "crisis_detected": False
+    #         })
+    #     }
 
     # Normal counseling flow
     client_profile = ClientProfile(**client_profile_dict)
     session = CounselingSession()
 
-    initial_agent = InitialAgent()
-    session.initial_session_data = initial_agent.conduct_initial_session(
-        client_profile, initial_client_message
-    )
+    # initial_agent = InitialAgent()
+    # session.initial_session_data = initial_agent.conduct_initial_session(
+    #     client_profile, initial_client_message
+    # )
     
-    session.agenda_items = session.initial_session_data.get('agenda_items', [])
-    session.session_focus = session.initial_session_data.get('session_focus', '')
+    # session.agenda_items = session.initial_session_data.get('agenda_items', [])
+    # session.session_focus = session.initial_session_data.get('session_focus', '')
     
-    agenda_summary = session.initial_session_data.get('agenda_summary', '')
-    combined_context = session.initial_session_data.get('combined_context', '')
+    # agenda_summary = session.initial_session_data.get('agenda_summary', '')
+    # combined_context = session.initial_session_data.get('combined_context', '')
     
-    enhanced_client_info = f"""
-    {client_profile.to_string()}
+    # enhanced_client_info = f"""
+    # {client_profile.to_string()}
     
-    Agenda Information:
-    {agenda_summary}
+    # Agenda Information:
+    # {agenda_summary}
     
-    Combined Context:
-    {combined_context}
-    """
+    # Combined Context:
+    # {combined_context}
+    # """
     
-    cbt_planner = CBTPlannerAgent()
-    session.cbt_plan = cbt_planner.create_plan(
-        enhanced_client_info,
-        client_profile.reason_for_counseling,
-        initial_client_message
-    )
+    # cbt_planner = CBTPlannerAgent()
+    # session.cbt_plan = cbt_planner.create_plan(
+    #     enhanced_client_info,
+    #     client_profile.reason_for_counseling,
+    #     initial_client_message
+    # )
     
     session.add_message("Client", initial_client_message)
     initial_response = _process_turn(session, client_profile)
@@ -204,21 +204,21 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
     # Check relevance AFTER crisis check
-    relevance_validator = RelevanceValidationAgent()
-    relevance_response = relevance_validator.execute(client_message)
+    # relevance_validator = RelevanceValidationAgent()
+    # relevance_response = relevance_validator.execute(client_message)
     
-    if relevance_response != "RELEVANT":
-        session = CounselingSession.from_dict(session_state_dict)
-        session.add_message("Client", client_message)
-        session.add_message("Counselor", relevance_response)
-        return {
-            "statusCode": 200,
-            "body": json.dumps({
-                "response": relevance_response,
-                "session_state": session.to_dict(),
-                "crisis_detected": False
-            })
-        }
+    # if relevance_response != "RELEVANT":
+    #     session = CounselingSession.from_dict(session_state_dict)
+    #     session.add_message("Client", client_message)
+    #     session.add_message("Counselor", relevance_response)
+    #     return {
+    #         "statusCode": 200,
+    #         "body": json.dumps({
+    #             "response": relevance_response,
+    #             "session_state": session.to_dict(),
+    #             "crisis_detected": False
+    #         })
+    #     }
 
     # Normal counseling flow
     session = CounselingSession.from_dict(session_state_dict)
