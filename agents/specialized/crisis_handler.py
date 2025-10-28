@@ -54,15 +54,15 @@ class CrisisHandlerAgent(BaseAgent):
             kb_score = result.get("score", 0.0)
             print(f"Retrieved KB text with score: {kb_score}")
 
-            if kb_score <= 0.2 or not kb_text.strip():
+            if kb_score <= 0.2:
                 return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)
-            if kb_score < 0.5 and kb_score > 0.2 or not kb_text.strip():
+            if kb_score < 0.5 and kb_score > 0.2:
+                print("[DEBUG] FALLBACK CRISIS")
                 prompt_crisis_fallback = PromptTemplates.crisis_detect()
                 crisis_agent_fallback = Agent(system_prompt=prompt_crisis_fallback, model=self.model, tools=[])
                 crisis_response_fallback = str(crisis_agent_fallback(message)).strip()
-                if not crisis_response_fallback:
-                    return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)                    
-                
+                if crisis_response_fallback.upper().startswith("NO_CRISIS"):
+                    return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)  
             prompt_intent = PromptTemplates.intent_extraction_prompt(message, kb_text)
             intent_agent = Agent(system_prompt=prompt_intent, model=self.model, tools=[])
             intent_response = str(intent_agent(message)).strip()

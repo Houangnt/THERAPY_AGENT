@@ -18,7 +18,6 @@ def print_turn(turn_num, client_msg, handler_func, body_key, session_state, clie
     response = handler_func(event, None)
     body = json.loads(response["body"])
     
-    # Tự động nhận đúng key (initial_response hoặc response)
     counselor_response = body.get("response") or body.get("initial_response")
     crisis_detected = body.get("crisis_detected", False)
     session_state = body["session_state"]
