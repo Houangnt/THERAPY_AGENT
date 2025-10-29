@@ -409,27 +409,65 @@ def _collect_crisis_flags_from_session(chat_history: List[Dict[str, Any]]) -> Li
     return list(flags_set)
 
 
+# def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
+#     """Evaluate each CRITERION as True/False."""
+#     config = Config()
+#     formatted_history = _format_chat_history(chat_history)
+#     bedrock_model = BedrockModel(
+#         model_id="mistral.mistral-large-2402-v1:0",
+#         region_name="ap-southeast-2",
+#         streaming=False
+#     )
+#     rating_agent = Agent(
+#         system_prompt=f'''You are an evaluator of CBT counseling quality. 
+#         For each of the following criteria, output True if the chat meets it, otherwise False.
+#         Criteria: {', '.join(config.CRITERIONS)} 
+#         Respond strictly as a JSON dict with criterion: boolean.''',
+#         model=bedrock_model
+#     )
+#     prompt = PromptTemplates.session_ratings_prompt(formatted_history)
+#     response = str(rating_agent(prompt)).strip()
+#     try:
+#         return json.loads(response)
+#     except:
+#         return {c: False for c in config.CRITERIONS}
+
 def _evaluate_session_ratings(chat_history: List[Dict[str, Any]]) -> Dict[str, bool]:
     """Evaluate each CRITERION as True/False."""
     config = Config()
     formatted_history = _format_chat_history(chat_history)
+
     bedrock_model = BedrockModel(
         model_id="mistral.mistral-large-2402-v1:0",
         region_name="ap-southeast-2",
-        streaming=False
+        streaming=False,
+        temperature=0
     )
+
     rating_agent = Agent(
-        system_prompt=f'''You are an evaluator of CBT counseling quality. 
-        For each of the following criteria, output True if the chat meets it, otherwise False.
-        Criteria: {', '.join(config.CRITERIONS)} 
-        Respond strictly as a JSON dict with criterion: boolean.''',
+        system_prompt=f"""
+        You are an evaluator of CBT counseling quality.
+        Evaluate each of the following criteria as True or False.
+
+        Return output strictly as a JSON object (no explanations, no text before or after):
+        Example format:
+        {{
+            "response_richness": true,
+            "message_reciprocity": false,
+            ...
+        }}
+        Criteria: {', '.join(config.CRITERIONS)}
+        """,
         model=bedrock_model
     )
+
     prompt = PromptTemplates.session_ratings_prompt(formatted_history)
     response = str(rating_agent(prompt)).strip()
+
     try:
-        return json.loads(response)
-    except:
+        parsed = json.loads(response)
+        return {c: bool(parsed.get(c, False)) for c in config.CRITERIONS}
+    except Exception:
         return {c: False for c in config.CRITERIONS}
 
 

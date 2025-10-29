@@ -450,6 +450,32 @@ class PromptTemplates:
     @staticmethod
     def session_ratings_prompt(formatted_history: str) -> str:
         return f"""
+        1) ENGAGEMENT QUALITY 
+        Response richness — How elaborated the patient’s replies are (vs. minimal / yes–no). Looks at detail, nuance, use of examples, specificity. 
+        Message reciprocity — Whether the patient picks up on, answers, or builds on therapist prompts (vs. evades / ignores / shifts topic abruptly). 
+        Time spent (in transcript context interpreted as) — Relative speaking “share” and sustained participation (i.e., not abrupt disengagement or extremely short minimal answers suggesting withdrawal). 
+        Opt-in behaviour — Textual evidence of voluntary participation: agreement to explore, willingness to answer, explicit consent to try tasks (“ok let’s try”, “I want to talk about…”). 
+        2) COGNITIVE / REFLECTIVE ACTIVITY 
+        Insight statement — Explicit recognition of a connection, pattern, or mechanism (“I notice I assume people judge me when they’re quiet”).
+        Self-reflection — The patient examines own thoughts, feelings, or behaviours rather than only narrating events (“I think I reacted that way because…”). 
+        Curiosity / experimentation — Signs of mental flexibility or hypothesis testing (“I wonder if…”, “Maybe I could try…”, “What would happen if…”). 
+        3) EMOTIONAL ACTIVATION & CONTAINMENT 
+        Emotional expression — Explicit naming or showing of emotion in language (sadness / anger / shame / fear / tenderness / relief etc.). 
+        Containment — The patient demonstrates regulation or the therapist scaffolds emotional material such that affect does not spill into overwhelm; in transcript terms: ability to speak about affect without fragmentation or derealised derailment. 
+        Affective shift — A noticeable change in affect inside the session (heavier → lighter; shutdown → engaged; distressed → regulated; resigned → hopeful). 
+        4) GOAL & DIRECTION ALIGNMENT 
+        Clarity gained — The transcript contains movement from confusion to a sharper articulation of the problem, need, or next step. Values connection — Mentions of what matters or has meaning (“I want to show up for my kids”; “Integrity is important to me”). Therapeutic momentum — Forward motion in direction of change (problem definition → option generation; insight → plan; avoidance → engagement). 
+        5) MOTIVATION & BEHAVIOUR ACTIVATION 
+        Action step identified — A concrete behavioural step is named (“I will call X”, “I will write the thought log tonight”). 
+        Follow-through — In-session textual report of doing previous agreed actions (“I did the exposure I planned last week”). Increased agency — Language showing internal locus (“I can”, “I will”, “I choose”) vs. helpless or externalised stance. 
+        6) RELATIONAL / THERAPEUTIC ALLIANCE 
+        Warmth or rapport — Signals of trust, comfort, gratitude, positive regard (“I feel safe saying this here”). 
+        Collaboration — Joint stance markers (“let’s check this”, “can we look at X together”, patient co-constructs agenda).
+        Focused attention — Patient is on-task with the therapeutic topic, not chronically tangential or avoidant in transcript. 
+        7) META-ENGAGEMENT 
+        Perceived usefulness — Verbal evidence that the session / intervention feels helpful (“this helps”, “that makes sense”, “this is different from before”). 
+        Willingness to return — Verbal intent or desire for continuity (“let’s continue next time”, “I want to keep working on this here”).
+        
         Evaluate the following full counseling conversation according to the listed criteria.
         Return JSON with True/False for each criterion.
 

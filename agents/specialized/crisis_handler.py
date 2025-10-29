@@ -54,9 +54,9 @@ class CrisisHandlerAgent(BaseAgent):
             kb_score = result.get("score", 0.0)
             print(f"Retrieved KB text with score: {kb_score}")
 
-            if kb_score <= 0.2:
+            if kb_score <= 0.55:
                 return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)
-            if kb_score < 0.5 and kb_score > 0.2:
+            if kb_score < 0.55 and kb_score > 0.2:
                 print("[DEBUG] FALLBACK CRISIS")
                 prompt_crisis_fallback = PromptTemplates.crisis_detect()
                 crisis_agent_fallback = Agent(system_prompt=prompt_crisis_fallback, model=self.model, tools=[])
