@@ -22,11 +22,11 @@ bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeas
 response = bedrock_runtime.retrieve(
     knowledgeBaseId='UHCCSWKNZF',
     retrievalQuery={
-        'text': 'thank you'
+        'text': 'goodbye'
     },
     retrievalConfiguration={
         'vectorSearchConfiguration': {
-            'numberOfResults': 1,
+            'numberOfResults': 10,
             'filter': {
                 'equals': {
                     'key': 'intervention_type',
@@ -36,11 +36,12 @@ response = bedrock_runtime.retrieve(
         } 
     }   
 )
-print(response["retrievalResults"][0])
-print(response["retrievalResults"][0]["score"])
-print("===============")
-print(response["retrievalResults"][0]["metadata"])
-print("===============")
-flag_raw = response["retrievalResults"][0]["metadata"]["flag"]
-flag_clean = re.sub(r"^\s*\d+\s*[:\.]\s*", "", flag_raw)
-print(flag_clean)
+for i in range(10):
+    print(response["retrievalResults"][i]["content"]["text"])
+    # print(response["retrievalResults"][i]["score"])
+    # print("===============")
+    # print(response["retrievalResults"][i]["metadata"])
+    # print("===============")
+    # flag_raw = response["retrievalResults"][i]["metadata"]["flag"]
+    # flag_clean = re.sub(r"^\s*\d+\s*[:\.]\s*", "", flag_raw)
+    # print(flag_clean)

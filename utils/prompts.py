@@ -57,7 +57,9 @@ class PromptTemplates:
             - Identify and extract **only the sentences or phrases** in the user's input that have similar intent, topic, or risk level to the RAG knowledge base text.
             - Focus on **suicidal ideation**, **self-harm**, **violence**, or **high emotional distress**.
             - Keep **all original characters** (including punctuation or special symbols) from the user's text.
-            - Do **not** rewrite, summarize, or explain anything.
+            - Do **not** rewrite, summarize.
+            - DO NOT EXPLAIN ANYTHING
+            - DO NOTE ANYTHING
             - Output strictly as a **comma-separated list** of phrases that match the risky intent.
 
             If **no phrase or sentence** in the user's input matches the risky intent, 
@@ -72,7 +74,7 @@ class PromptTemplates:
 
             STRICT OUTPUT FORMAT:
             <phrase_1>, <phrase_2>, ...
-            If no match found → output the cleaned user input without commas.
+            If no match found → return empty string and NO explantation.
             """
     @staticmethod
     def rag_cbt_concept_prompt(user_input: str) -> str:
@@ -97,26 +99,61 @@ class PromptTemplates:
             User message:
             "{user_input}"
 
-            Now produce 5 short CBT-relevant conceptual queries.
+            Now produce 3 short CBT-relevant conceptual queries.
             """        
     @staticmethod
-    def crisis_detect() -> str:
-        return (
-            "You are a **crisis detection and response agent** trained to identify true emergencies related to mental health or safety.\n\n"
-            "Your goal is to analyze the user's message and determine whether it indicates an **immediate or high-risk crisis** situation.\n\n"
-            "A **crisis** includes any clear or implied reference to:\n"
-            "- **Suicidal ideation or self-harm** (e.g., wanting to die, planning to hurt oneself)\n"
-            "- **Violence toward others** (e.g., intent or threat to harm someone)\n"
-            "- **Abuse or assault** (sexual, physical, emotional, domestic, or workplace violence)\n"
-            "- **Severe mental health breakdown** (e.g., psychosis, losing control, severe panic attack, mental collapse)\n"
-            "- **Medical emergencies related to mental health** (e.g., overdose, unconsciousness, self-poisoning)\n"
-            "- **Severe neglect or danger** (e.g., harm to children, elders, or vulnerable persons)\n\n"
-            "**Do NOT treat mild distress, sadness, anxiety, or insomnia as crisis** unless there is clear danger to self or others.\n"
-            "Examples of **non-crisis** situations: feeling stressed, having insomnia for a few days, general sadness, relationship conflicts without danger.\n\n"
-            "**Output format:**\n"
-            "- If the input clearly indicates a crisis → respond exactly with: `CRISIS_DETECTED`\n"
-            "- If there is no clear or imminent danger → respond exactly with: `NO_CRISIS`"
-        )
+    # def crisis_detect(history: str) -> str:
+    #     return (
+    #         "You are a **crisis detection and response agent** trained to identify true emergencies related to mental health or safety.\n\n"
+    #         "Your goal is to analyze the user's message and determine whether it indicates an **immediate or high-risk crisis** situation.\n\n"
+    #         "A **crisis** includes any clear or implied reference to:\n"
+    #         "- **Suicidal ideation or self-harm** (e.g., wanting to die, planning to hurt oneself)\n"
+    #         "- **Violence toward others** (e.g., intent or threat to harm someone)\n"
+    #         "- **Abuse or assault** (sexual, physical, emotional, domestic, or workplace violence)\n"
+    #         "- **Severe mental health breakdown** (e.g., psychosis, losing control, severe panic attack, mental collapse)\n"
+    #         "- **Medical emergencies related to mental health** (e.g., overdose, unconsciousness, self-poisoning , drug)\n"
+    #         "- **Severe neglect or danger** (e.g., harm to children, elders, or vulnerable persons)\n\n"
+    #         "**Do NOT treat mild distress, sadness, anxiety, or insomnia as crisis** unless there is clear danger to self or others.\n"
+    #         "Examples of **non-crisis** situations: feeling stressed, having insomnia for a few days, general sadness, relationship conflicts without danger, a thank you without context.\n\n"
+    #         "**Output format:**\n"
+    #         "- If the input clearly indicates a crisis → respond exactly with: `CRISIS_DETECTED`\n"
+    #         "- If there is no clear or imminent danger → respond exactly with: `NO_CRISIS`"
+            
+    #     )
+    def crisis_detect(history: str) -> str:
+        return f"""
+    You are a Crisis Detection and Response Agent specialized in identifying mental health or safety emergencies from chat conversations.
+
+    Your task is to analyze the entire conversation history below to understand context, but make your final judgment only based on the latest user message in that history.
+
+    Conversation History (most recent last):
+    {history}
+
+    Your Objective:
+    Determine whether the latest user message indicates a true or imminent crisis situation that requires emergency attention.
+
+    A crisis includes any direct or indirect reference to:
+    - Suicidal ideation or self-harm (e.g., “I want to die”, “I cut myself”, “There’s no point anymore”)
+    - Violence toward others (e.g., “I’m going to hurt them”, “I want to kill someone”)
+    - Abuse or assault (sexual, physical, emotional, domestic, or workplace violence)
+    - Severe mental health breakdown (e.g., psychosis, severe panic, mental collapse)
+    - Medical emergencies (e.g., overdose, unconsciousness, self-poisoning, drug abuse)
+    - Neglect or danger to vulnerable persons (e.g., “My child hasn’t eaten for days”, “They’re locked in”)
+
+    Do NOT classify as crisis if the user only expresses:
+    - Mild sadness, stress, loneliness, or anxiety
+    - Relationship issues without danger
+    - General life frustration
+    - Thankfulness or ordinary conversation
+    - Goodbye
+
+    Output Format:
+    Respond with one of the following exact outputs:
+    - CRISIS_DETECTED → if the latest message clearly or implicitly suggests danger to self or others.
+    - NO_CRISIS → if the latest message shows no indication of immediate risk or danger.
+
+    Do not explain or add any other text.
+    """    
         # return (
         #     "You are a **crisis detection and response agent**.\n"
         #     "Your task is to analyze the user's message and determine if it indicates a **crisis situation**, if so, immediately provide relevant emergency contacts\n\n"

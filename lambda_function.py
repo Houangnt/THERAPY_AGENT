@@ -81,7 +81,7 @@ def start_session_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]
 
     # Check for crisis FIRST using CrisisHandlerAgent
     crisis_handler = CrisisHandlerAgent()
-    crisis_json_str = crisis_handler.execute(initial_client_message)
+    crisis_json_str = crisis_handler.execute(initial_client_message, history="")
     
     try:
         crisis_data = json.loads(crisis_json_str)
@@ -176,8 +176,12 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     client_profile_dict = body.get("client_profile")
 
     # Check for crisis FIRST
+    session = CounselingSession.from_dict(session_state_dict)
+    config = Config()
+    history_str = session.get_history_string(max_messages=config.MAX_HISTORY_LENGTH)
+
     crisis_handler = CrisisHandlerAgent()
-    crisis_json_str = crisis_handler.execute(client_message)
+    crisis_json_str = crisis_handler.execute(client_message, history=history_str)
     
     try:
         crisis_data = json.loads(crisis_json_str)
@@ -189,7 +193,6 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     # If crisis detected (has both flags and response)
     if crisis_flags and crisis_response:
-        session = CounselingSession.from_dict(session_state_dict)
         session.add_message("Client", client_message)
         session.add_message("Counselor", crisis_response)
         
@@ -221,7 +224,6 @@ def process_turn_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     #     }
 
     # Normal counseling flow
-    session = CounselingSession.from_dict(session_state_dict)
     client_profile = ClientProfile(**client_profile_dict)
     session.add_message("Client", client_message)
     response = _process_turn(session, client_profile)

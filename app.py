@@ -164,7 +164,7 @@ def generate_session_summary(session_state_json, client_profile_json):
             for flag in flags:
                 summary_output += f"- ⚠️ {flag}\n"
         else:
-            summary_output += "- ✅ No crisis flags detected\n"
+            summary_output += "-  None\n"
         summary_output += "\n"
         
         # Session Ratings

@@ -21,7 +21,7 @@ class CrisisHandlerAgent(BaseAgent):
             model=self.model
         )
 
-    def execute(self, message: str) -> str:
+    def execute(self, message: str, history: str = "") -> str:
         """Detect crisis intent and generate emergency response if needed.
         """
         bedrock_runtime = boto3.client("bedrock-agent-runtime", region_name="ap-southeast-2")
@@ -56,9 +56,9 @@ class CrisisHandlerAgent(BaseAgent):
 
             if kb_score <= 0.2:
                 return json.dumps({"flags": flags, "response": response}, ensure_ascii=False)
-            if kb_score <= 0.55:
+            if kb_score <= 0.6:
                 print("[DEBUG] FALLBACK CRISIS")
-                prompt_crisis_fallback = PromptTemplates.crisis_detect()
+                prompt_crisis_fallback = PromptTemplates.crisis_detect(history)
                 crisis_agent_fallback = Agent(system_prompt=prompt_crisis_fallback, model=self.model, tools=[])
                 crisis_response_fallback = str(crisis_agent_fallback(message)).strip()
                 if crisis_response_fallback.upper().startswith("NO_CRISIS"):
