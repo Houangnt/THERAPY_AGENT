@@ -484,10 +484,10 @@ class PromptTemplates:
     @staticmethod
     def session_ratings_prompt(formatted_history: str) -> str:
         return f"""
-        1) ENGAGEMENT QUALITY 
-        Response richness — How elaborated the patient’s replies are (vs. minimal / yes–no). Looks at detail, nuance, use of examples, specificity. 
-        Message reciprocity — Whether the patient picks up on, answers, or builds on therapist prompts (vs. evades / ignores / shifts topic abruptly). 
-        Time spent (in transcript context interpreted as) — Relative speaking “share” and sustained participation (i.e., not abrupt disengagement or extremely short minimal answers suggesting withdrawal). 
+        1) ENGAGEMENT QUALITY
+        Response richness — How elaborated the patient’s replies are (vs. minimal / yes–no). Looks at detail, nuance, use of examples, specificity. If the client response is longer than 3 words, this criterion is passed.
+        Message reciprocity — Whether the patient picks up on, answers, or builds on therapist prompts (vs. evades / ignores / shifts topic abruptly).
+        Time spent (in transcript context interpreted as) — Relative speaking “share” and sustained participation (i.e., not abrupt disengagement or extremely short minimal answers suggesting withdrawal).  If the conversation is longer than 3 turns, this criterion is passed.
         Opt-in behaviour — Textual evidence of voluntary participation: agreement to explore, willingness to answer, explicit consent to try tasks (“ok let’s try”, “I want to talk about…”). 
         2) COGNITIVE / REFLECTIVE ACTIVITY 
         Insight statement — Explicit recognition of a connection, pattern, or mechanism (“I notice I assume people judge me when they’re quiet”).
