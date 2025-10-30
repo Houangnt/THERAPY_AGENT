@@ -51,31 +51,28 @@ class PromptTemplates:
     #         """
     def intent_extraction_prompt(user_text: str, kb_text: str) -> str:
         return f"""
-            You are an intent analysis assistant for a CBT crisis detection system.
+    You are an intent analysis assistant for a CBT crisis detection system.
+    
+    Your task:
+    - Identify and extract **only the sentences or phrases** in the user's input that have similar intent, topic, or risk level to the RAG knowledge base text.
+    - Focus on **suicidal ideation**, **self-harm**, **violence**, or **high emotional distress**.
+    - Keep **all original characters** (including punctuation and special symbols) from the user's text.
+    - Do **not** rewrite, summarize, or alter the text in any way.
+    
+    USER INPUT:
+    {user_text}
+    
+    RAG KNOWLEDGE BASE TEXT:
+    {kb_text}
+    
+    Output Format:
+    Respond with one of the following exact outputs:
+    - A **comma-separated list** of matching phrases (e.g., "I want to die, I can’t handle this anymore").
+    - The **full original user input with commas removed** → if no phrase matches the risky intent.
+    - An **empty string** → only if the user's input is meaningless, blank, or completely unrelated to any risky intent.
+    Do NOT explain or add any other text.
+    """
 
-            Your task:
-            - Identify and extract **only the sentences or phrases** in the user's input that have similar intent, topic, or risk level to the RAG knowledge base text.
-            - Focus on **suicidal ideation**, **self-harm**, **violence**, or **high emotional distress**.
-            - Keep **all original characters** (including punctuation or special symbols) from the user's text.
-            - Do **not** rewrite, summarize.
-            - DO NOT EXPLAIN ANYTHING
-            - DO NOTE ANYTHING
-            - Output strictly as a **comma-separated list** of phrases that match the risky intent.
-
-            If **no phrase or sentence** in the user's input matches the risky intent, 
-            then **return the full original user input**, 
-            but **remove all commas (',')** from it before output.
-
-            USER INPUT:
-            {user_text}
-
-            RAG KNOWLEDGE BASE TEXT:
-            {kb_text}
-
-            STRICT OUTPUT FORMAT:
-            <phrase_1>, <phrase_2>, ...
-            If no match found → return empty string and NO explantation.
-            """
     @staticmethod
     def rag_cbt_concept_prompt(user_input: str) -> str:
         return f"""
